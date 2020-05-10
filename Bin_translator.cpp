@@ -4,7 +4,10 @@
 //}============================================================================
 
 #include <stdio.h>
+
 #include "my_elf.h"
+#include "OneginLib.h"
+#include "enum.h"
 
 //=============================================================================
 
@@ -13,11 +16,11 @@ const elf::Elf64_Half	C_my_e_machine   = 0x003E;
 const elf::Elf64_Word	C_my_e_version   = 0x00000001;
 const elf::Elf64_Addr	C_my_e_entry     = 0x0000000000401000; // tested asm programs
 const elf::Elf64_Off	C_my_e_phoff     = 0x0000000000000040;
-const elf::Elf64_Off	C_my_e_shoff     =; // EOF because without any sections
+const elf::Elf64_Off	C_my_e_shoff     = 0; // EOF because without any sections
 const elf::Elf64_Word	C_my_e_flags     = 0x00000000;
 const elf::Elf64_Half	C_my_e_ehsize    = 0x0040; // 64 bit
 const elf::Elf64_Half	C_my_e_phentsize = 0x0038; // 64 bit
-const elf::Elf64_Half	C_my_e_phnum;    = 0x0003; // ??? (default, .data and .bss, .text)
+const elf::Elf64_Half	C_my_e_phnum     = 0x0001; // ??? (default)
 const elf::Elf64_Half	C_my_e_shentsize = 0x0040; // 64 bit
 const elf::Elf64_Half	C_my_e_shnum     = 0x0000; // because without any sections
 const elf::Elf64_Half	C_my_e_shstrndx  = 0x0000; // because without any sections
@@ -28,8 +31,8 @@ const elf::Elf64_Word	C_my_p_flags  = 0x00000004;
 const elf::Elf64_Off 	C_my_p_offset = 0x0000000000000000;
 const elf::Elf64_Addr	C_my_p_vaddr  = 0x0000000000400000;
 const elf::Elf64_Addr	C_my_p_paddr  = 0x0000000000400000;
-const elf::Elf64_Xword	C_my_p_filesz = 0x00000000000000B0;
-const elf::Elf64_Xword	C_my_p_memsz  = 0x00000000000000B0;
+const elf::Elf64_Xword	C_my_p_filesz = 0x00000000000000B0; // TBA
+const elf::Elf64_Xword	C_my_p_memsz  = 0x00000000000000B0; // TBA
 const elf::Elf64_Xword	C_my_p_align  = 0x0000000000001000;
 
 //=============================================================================
@@ -38,15 +41,81 @@ void Make_Default_ELF_Header (elf::Elf64_Ehdr *elf_header);
 
 void Make_Default_Program_Header (elf::Elf64_Phdr *program_header);
 
+//-----------------------------------------------------------------------------
+
+void Un_Fold_If_Have_Arg (char *res, int *pos, const char opcode);
+
 //=============================================================================
 
 int main ()
 {
-    FILE *fin  = fopen ("program.txt",  "rb");
-    FILE *fout = fopen ("Elf_file", "wb");
+    char *name_of_fin  = "output.txt";
+    char *name_of_fout = "Elf_file";
+
+    int sz_file = Find_Size_Of_File (name_of_fin);
+
+    FILE* fin  = fopen (name_of_fin,  "rb");
+    FILE* fout = fopen (name_of_fout, "wb");
+
+    char *buf = (char *) calloc (sz_file + 1, sizeof (char));
+
+    fread (buf, sizeof (char), sz_file + 1, fin);
+
 
     elf::Elf64_Ehdr elf_header = {};
     Make_Default_ELF_Header (&elf_header);
+
+
+    elf::Elf64_Phdr program_header = {};
+    Make_Default_Program_Header (&program_header);
+
+    const int c_offset_of_program = 0x78; // address start of the program
+
+
+//     #define DEF_CMD(name, num, code, arg, opcode)                                             \
+//        case CMD_##name:                                                                       \
+//            if (arg == 1)                                                                      \
+//            {                                                                                  \
+//                Un_Fold_If_Have_Arg (res, &pos, opcode);                                       \
+//            }                                                                                  \
+//            else
+//            {
+//
+//            }
+//                                                                                               \
+//            break;
+//
+//
+//    char *res = (char *) calloc (sz_file + 1, sizeof (char));
+//
+//    int pos = 0;
+//
+//    while (pos < sz_file)
+//    {
+//        switch (buf[pos])
+//        {
+//        #include "Commands.h"
+//        default:
+//            break;
+//        }
+//
+//        pos++;
+//    }
+//
+//
+//
+//    #indef DEF_CMD
+
+
+    elf_header.e_shoff = c_offset_of_program + 12;      //
+    program_header.p_filesz = 12; //
+    program_header.p_memsz  = 12; //
+
+    fwrite (&elf_header,     sizeof (elf::Elf64_Ehdr), 1, fout);
+    fwrite (&program_header, sizeof (elf::Elf64_Phdr), 1, fout);
+
+    char res[] = {0xb8, 0x3c, 0, 0, 0, 0xbf, 0, 0, 0, 0, 0x0f, 0x05};
+    fwrite (res, 12, sizeof (char), fout);
 
     return 0;
 }
@@ -95,6 +164,19 @@ void Make_Default_Program_Header (elf::Elf64_Phdr *program_header)
     program_header->p_align  = C_my_p_align;
 }
 
+//=============================================================================
+
+void Un_Fold_If_Have_Arg (char *res, int *pos, const char opcode)
+{
+
+
+}
+
+
+
+
+
+//=============================================================================
 
 //Name           Offset         NumValue            Value
 //EI_MAG:        0x00000000     0x7F454C46          ELF
