@@ -33,7 +33,7 @@ const elf::Elf64_Addr	C_my_p_vaddr  = 0x0000000000400000;
 const elf::Elf64_Addr	C_my_p_paddr  = 0x0000000000400000;
 const elf::Elf64_Xword	C_my_p_filesz = 0x00000000000000B0; // TBA
 const elf::Elf64_Xword	C_my_p_memsz  = 0x00000000000000B0; // TBA
-const elf::Elf64_Xword	C_my_p_align  = 0x0000000000001000; // ???
+const elf::Elf64_Xword	C_my_p_align  = 0x0000000000000000; // ???
 
 //=============================================================================
 
@@ -69,7 +69,7 @@ int main ()
     elf::Elf64_Phdr program_header = {};
     Make_Default_Program_Header (&program_header);
 
-    const int c_offset_of_program = 0x78; // address start of the program
+//    const int c_offset_of_program = 0x78; // address start of the program
 
 //    elf::Elf64_Phdr text_header = {};
 //    Make_Default_Program_Header (&text_header);
