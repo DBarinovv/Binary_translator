@@ -14,15 +14,15 @@
 const elf::Elf64_Half	C_my_e_type      = 0x0002;
 const elf::Elf64_Half	C_my_e_machine   = 0x003E;
 const elf::Elf64_Word	C_my_e_version   = 0x00000001;
-const elf::Elf64_Addr	C_my_e_entry     = 0x0000000000401000; // tested asm programs
+const elf::Elf64_Addr	C_my_e_entry     = 0x0000000000400028;
 const elf::Elf64_Off	C_my_e_phoff     = 0x0000000000000040;
-const elf::Elf64_Off	C_my_e_shoff     = 0x00000bc;
+const elf::Elf64_Off	C_my_e_shoff     = 0x00000000;
 const elf::Elf64_Word	C_my_e_flags     = 0x00000000;
 const elf::Elf64_Half	C_my_e_ehsize    = 0x0040; // 64 bit
 const elf::Elf64_Half	C_my_e_phentsize = 0x0038; // 64 bit
-const elf::Elf64_Half	C_my_e_phnum     = 0x0002; // default and .text
+const elf::Elf64_Half	C_my_e_phnum     = 0x0001; // default
 const elf::Elf64_Half	C_my_e_shentsize = 0x0040; // 64 bit
-const elf::Elf64_Half	C_my_e_shnum     = 0x0001; // ??? because without any sections
+const elf::Elf64_Half	C_my_e_shnum     = 0x0000; // because without any sections
 const elf::Elf64_Half	C_my_e_shstrndx  = 0x0000; // because without any sections
 
 
@@ -33,7 +33,7 @@ const elf::Elf64_Addr	C_my_p_vaddr  = 0x0000000000400000;
 const elf::Elf64_Addr	C_my_p_paddr  = 0x0000000000400000;
 const elf::Elf64_Xword	C_my_p_filesz = 0x00000000000000B0; // TBA
 const elf::Elf64_Xword	C_my_p_memsz  = 0x00000000000000B0; // TBA
-const elf::Elf64_Xword	C_my_p_align  = 0x0000000000001000;
+const elf::Elf64_Xword	C_my_p_align  = 0x0000000000000000; // ???
 
 //=============================================================================
 
@@ -71,15 +71,15 @@ int main ()
 
     const int c_offset_of_program = 0x78; // address start of the program
 
-    elf::Elf64_Phdr text_header = {};
-    Make_Default_Program_Header (&text_header);
-
-    text_header.p_flags  = 0x00000005;
-    text_header.p_offset = 0x0000000000001000;
-    text_header.p_vaddr  = 0x0000000000401000;
-    text_header.p_paddr  = 0x0000000000401000;
-    text_header.p_filesz = 12;
-    text_header.p_memsz  = 12;
+//    elf::Elf64_Phdr text_header = {};
+//    Make_Default_Program_Header (&text_header);
+//
+//    text_header.p_flags  = 0x00000005;
+//    text_header.p_offset = 0x0000000000001000;
+//    text_header.p_vaddr  = 0x0000000000401000;
+//    text_header.p_paddr  = 0x0000000000401000;
+//    text_header.p_filesz = 12;
+//    text_header.p_memsz  = 12;
 
 
 //     #define DEF_CMD(name, num, code, arg, opcode)                                             \
@@ -119,7 +119,7 @@ int main ()
 
     fwrite (&elf_header,     sizeof (elf::Elf64_Ehdr), 1, fout);
     fwrite (&program_header, sizeof (elf::Elf64_Phdr), 1, fout);
-    fwrite (&text_header,    sizeof (elf::Elf64_Phdr), 1, fout);
+//    fwrite (&text_header,    sizeof (elf::Elf64_Phdr), 1, fout);
 
     char res[] = {0xb8, 0x3c, 0, 0, 0, 0xbf, 0, 0, 0, 0, 0x0f, 0x05};
     fwrite (res, 12, sizeof (char), fout);
