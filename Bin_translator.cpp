@@ -14,7 +14,7 @@
 const elf::Elf64_Half	C_my_e_type      = 0x0002;
 const elf::Elf64_Half	C_my_e_machine   = 0x003E;
 const elf::Elf64_Word	C_my_e_version   = 0x00000001;
-const elf::Elf64_Addr	C_my_e_entry     = 0x0000000000401000; // tested asm programs
+const elf::Elf64_Addr	C_my_e_entry     = 0x000000000040078; // tested asm programs
 const elf::Elf64_Off	C_my_e_phoff     = 0x0000000000000040;
 const elf::Elf64_Off	C_my_e_shoff     = 0; // because without any sections
 const elf::Elf64_Word	C_my_e_flags     = 0x00000000;
