@@ -27,13 +27,13 @@ const elf::Elf64_Half	C_my_e_shstrndx  = 0x0000; // because without any sections
 
 
 const elf::Elf64_Word	C_my_p_type   = 0x00000001;
-const elf::Elf64_Word	C_my_p_flags  = 0x00000004;
+const elf::Elf64_Word	C_my_p_flags  = 0x00000005;
 const elf::Elf64_Off 	C_my_p_offset = 0x0000000000000000;
 const elf::Elf64_Addr	C_my_p_vaddr  = 0x0000000000400000;
 const elf::Elf64_Addr	C_my_p_paddr  = 0x0000000000400000;
 const elf::Elf64_Xword	C_my_p_filesz = 0x00000000000000B0; // TBA
 const elf::Elf64_Xword	C_my_p_memsz  = 0x00000000000000B0; // TBA
-const elf::Elf64_Xword	C_my_p_align  = 0x0000000000000000; // ???
+const elf::Elf64_Xword	C_my_p_align  = 0x0000000000001000; // ???
 
 //=============================================================================
 
@@ -116,6 +116,9 @@ int main ()
 //
 //    #indef DEF_CMD
 
+
+    program_header.p_filesz = 12;
+    program_header.p_memsz  = 12;
 
     fwrite (&elf_header,     sizeof (elf::Elf64_Ehdr), 1, fout);
     fwrite (&program_header, sizeof (elf::Elf64_Phdr), 1, fout);
