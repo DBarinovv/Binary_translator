@@ -22,7 +22,7 @@ const elf::Elf64_Half	C_my_e_ehsize    = 0x0040; // 64 bit
 const elf::Elf64_Half	C_my_e_phentsize = 0x0038; // 64 bit
 const elf::Elf64_Half	C_my_e_phnum     = 0x0002; // default and .text
 const elf::Elf64_Half	C_my_e_shentsize = 0x0040; // 64 bit
-const elf::Elf64_Half	C_my_e_shnum     = 0x0000; // because without any sections
+const elf::Elf64_Half	C_my_e_shnum     = 0x0001; // ??? because without any sections
 const elf::Elf64_Half	C_my_e_shstrndx  = 0x0000; // because without any sections
 
 
