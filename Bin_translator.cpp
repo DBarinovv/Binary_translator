@@ -14,7 +14,7 @@
 const elf::Elf64_Half	C_my_e_type      = 0x0002;
 const elf::Elf64_Half	C_my_e_machine   = 0x003E;
 const elf::Elf64_Word	C_my_e_version   = 0x00000001;
-const elf::Elf64_Addr	C_my_e_entry     = 0x0000000000400028;
+const elf::Elf64_Addr	C_my_e_entry     = 0x0000000000400078;
 const elf::Elf64_Off	C_my_e_phoff     = 0x0000000000000040;
 const elf::Elf64_Off	C_my_e_shoff     = 0x00000000;
 const elf::Elf64_Word	C_my_e_flags     = 0x00000000;
