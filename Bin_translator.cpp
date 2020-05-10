@@ -117,8 +117,8 @@ int main ()
 //    #indef DEF_CMD
 
 
-    program_header.p_filesz = 12;
-    program_header.p_memsz  = 12;
+    program_header.p_filesz = 0x84;
+    program_header.p_memsz  = 0x84;
 
     fwrite (&elf_header,     sizeof (elf::Elf64_Ehdr), 1, fout);
     fwrite (&program_header, sizeof (elf::Elf64_Phdr), 1, fout);
