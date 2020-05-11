@@ -14,7 +14,7 @@
 const elf::Elf64_Half	C_my_e_type      = 0x0002;
 const elf::Elf64_Half	C_my_e_machine   = 0x003E;
 const elf::Elf64_Word	C_my_e_version   = 0x00000001;
-const elf::Elf64_Addr	C_my_e_entry     = 0x0000000000400078;
+const elf::Elf64_Addr	C_my_e_entry     = 0x0000000000400080;
 const elf::Elf64_Off	C_my_e_phoff     = 0x0000000000000040;
 const elf::Elf64_Off	C_my_e_shoff     = 0x00000000;
 const elf::Elf64_Word	C_my_e_flags     = 0x00000000;
@@ -28,12 +28,12 @@ const elf::Elf64_Half	C_my_e_shstrndx  = 0x0000; // because without any sections
 
 const elf::Elf64_Word	C_my_p_type   = 0x00000001;
 const elf::Elf64_Word	C_my_p_flags  = 0x00000005;
-const elf::Elf64_Off 	C_my_p_offset = 0x0000000000000000;
+const elf::Elf64_Off 	C_my_p_offset = 0x0000000000000080;
 const elf::Elf64_Addr	C_my_p_vaddr  = 0x0000000000400000;
 const elf::Elf64_Addr	C_my_p_paddr  = 0x0000000000400000;
 const elf::Elf64_Xword	C_my_p_filesz = 0x00000000000000B0; // TBA
 const elf::Elf64_Xword	C_my_p_memsz  = 0x00000000000000B0; // TBA
-const elf::Elf64_Xword	C_my_p_align  = 0x0000000000000000; // ???
+const elf::Elf64_Xword	C_my_p_align  = 0x0000000000000010; // ???
 
 //=============================================================================
 
@@ -68,6 +68,8 @@ int main ()
 
     elf::Elf64_Phdr program_header = {};
     Make_Default_Program_Header (&program_header);
+
+    // ASSERTS!!!!!!
 
 //    const int c_offset_of_program = 0x78; // address start of the program
 
@@ -117,15 +119,15 @@ int main ()
 //    #indef DEF_CMD
 
 
-    program_header.p_filesz = 0x84;
-    program_header.p_memsz  = 0x84;
+    program_header.p_filesz = 0xD0;
+    program_header.p_memsz  = 0xD0;
 
     fwrite (&elf_header,     sizeof (elf::Elf64_Ehdr), 1, fout);
     fwrite (&program_header, sizeof (elf::Elf64_Phdr), 1, fout);
 //    fwrite (&text_header,    sizeof (elf::Elf64_Phdr), 1, fout);
 
-    char res[] = {0xb8, 0x3c, 0, 0, 0, 0xbf, 0, 0, 0, 0, 0x0f, 0x05};
-    fwrite (res, 12, sizeof (char), fout);
+    char res[] = {0x90, 0xb8, 0x3c, 0, 0, 0, 0xbf, 0, 0, 0, 0, 0x0f, 0x05};
+    fwrite (res, 13, sizeof (char), fout);
 
     return 0;
 }
