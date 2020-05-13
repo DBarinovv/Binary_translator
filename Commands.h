@@ -320,26 +320,22 @@ DEF_CMD(JNE, 16,
 
                 Cmp_Si_Di (res, &counter);
 
-                if (offsets_arr[sum] - offsets_arr[pos - 1] - 2 >= 256)
-                {
-                    res[counter++] = C_jne[0];
-                    res[counter++] = C_jne[1];
+//                if (offsets_arr[sum] - offsets_arr[pos - 1] - 2 >= 256)
+//                {
+                res[counter++] = C_jne[0];
+                res[counter++] = C_jne[1];
 
-                    int offset = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
-                    res[counter++] = offset % 256;
-                    offset /= 256;
-                    res[counter++] = offset % 256;
-                }
-                else
-                {
-                    res[counter++] = 0x75;
-                    res[counter++] = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
-                }
+                int offset = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
+                res[counter++] = offset % 256;
+                offset /= 256;
+                res[counter++] = offset % 256;
+                res[counter++] = 0;
+                res[counter++] = 0;
 
                 pos += sizeof (int);
 
                 break;
-                }, 1, 9)
+                }, 1, 12)
 
 
 DEF_CMD(OUT, 22,
