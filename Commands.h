@@ -35,7 +35,7 @@ DEF_CMD(PUSH, 1,
                 counter += sizeof (int);
 
                 break;
-                }, 1)
+                }, 1, 2)
 
 DEF_CMD(POP, 2,
                 {
@@ -69,7 +69,7 @@ DEF_CMD(POP, 2,
 //                * (int *) (res + counter) = sum;
 
                 break;
-                }, 1)
+                }, 1, 2)
 
 DEF_CMD(ADD, 3,
                 {
@@ -95,7 +95,7 @@ DEF_CMD(ADD, 3,
                 pos++;
 
                 break;
-                }, 0)
+                }, 0, 21)
 
 DEF_CMD(SUB, 4,
                 {
@@ -121,7 +121,7 @@ DEF_CMD(SUB, 4,
                 pos++;
 
                 break;
-                }, 0)
+                }, 0, 21)
 
 DEF_CMD(MUL, 5,
                 {
@@ -147,7 +147,7 @@ DEF_CMD(MUL, 5,
                 pos++;
 
                 break;
-                }, 0)
+                }, 0, 21)
 
 DEF_CMD(DIV, 6,
                 {
@@ -181,7 +181,7 @@ DEF_CMD(DIV, 6,
                 pos++;
 
                 break;
-                }, 0)
+                }, 0, 27)
 
 
 DEF_CMD(JMP, 17,
@@ -189,148 +189,135 @@ DEF_CMD(JMP, 17,
                 pos++;
 
                 int sum = * (int*) (buf + pos);
-                pos = sum;
+
+                res[counter++] = C_jmp;
+                * (int *) (res + counter) = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
+
+                counter++;
+                pos += sizeof (int);
 
                 break;
-                }, 1)
+                }, 1, 2)
 
 DEF_CMD(JA, 11,
                 {
-//                Stack_Pop (stk, &helper_1);
-//                Stack_Pop (stk, &helper_2);
-//
-//                pos++;
-//
-//                if (helper_1 > helper_2)
-//                {
-//                    int sum = * (int*) (buf + pos);
-//                    pos = sum;
-//                }
-//                else
-//                {
-                    pos += sizeof (int);
-//                }
+                pos++;
 
-//                Stack_Push (stk, helper_2);
-//                Stack_Push (stk, helper_1);
+                int sum = * (int*) (buf + pos);
+
+                Pop_Reg (res, &counter, E_si);
+                Pop_Reg (res, &counter, E_di);
+
+                Cmp_Si_Di (res, &counter);
+
+                res[counter++] = C_ja;
+                * (int *) (res + counter) = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
+
+                counter++;
+                pos += sizeof (int);
 
                 break;
-                }, 1)
+                }, 1, 2)
 
 DEF_CMD(JAE, 12,
                 {
-//                Stack_Pop (stk, &helper_1);
-//                Stack_Pop (stk, &helper_2);
-//
                 pos++;
-//
-//                if (helper_1 >= helper_2)
-//                {
-//                    int sum = * (int*) (buf + pos);
-//                    pos = sum;
-//                }
-//                else
-//                {
-                    pos += sizeof (int);
-//                }
 
-//                Stack_Push (stk, helper_2);
-//                Stack_Push (stk, helper_1);
+                int sum = * (int*) (buf + pos);
+
+                Pop_Reg (res, &counter, E_si);
+                Pop_Reg (res, &counter, E_di);
+
+                Cmp_Si_Di (res, &counter);
+
+                res[counter++] = C_jae;
+                * (int *) (res + counter) = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
+
+                counter++;
+                pos += sizeof (int);
 
                 break;
-                }, 1)
+                }, 1, 2)
 
 DEF_CMD(JB, 13,
                 {
-//                Stack_Pop (stk, &helper_1);
-//                Stack_Pop (stk, &helper_2);
-//
                 pos++;
-//
-//                if (helper_1 < helper_2)
-//                {
-//                    int sum = * (int*) (buf + pos);
-//                    pos = sum;
-//                }
-//                else
-//                {
-                    pos += sizeof (int);
-//                }
 
-//                Stack_Push (stk, helper_2);
-//                Stack_Push (stk, helper_1);
+                int sum = * (int*) (buf + pos);
+
+                Pop_Reg (res, &counter, E_si);
+                Pop_Reg (res, &counter, E_di);
+
+                Cmp_Si_Di (res, &counter);
+
+                res[counter++] = C_jb;
+                * (int *) (res + counter) = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
+
+                counter++;
+                pos += sizeof (int);
 
                 break;
-                }, 1)
+                }, 1, 2)
 
 DEF_CMD(JBE, 14,
                 {
-//                Stack_Pop (stk, &helper_1);
-//                Stack_Pop (stk, &helper_2);
-
                 pos++;
 
-//                if (helper_1 <= helper_2)
-//                {
-//                    int sum = * (int*) (buf + pos);
-//                    pos = sum;
-//                }
-//                else
-//                {
-                    pos += sizeof (int);
-//                }
+                int sum = * (int*) (buf + pos);
 
-//                Stack_Push (stk, helper_2);
-//                Stack_Push (stk, helper_1);
+                Pop_Reg (res, &counter, E_si);
+                Pop_Reg (res, &counter, E_di);
+
+                Cmp_Si_Di (res, &counter);
+
+                res[counter++] = C_jbe;
+                * (int *) (res + counter) = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
+
+                counter++;
+                pos += sizeof (int);
 
                 break;
-                }, 1)
+                }, 1, 2)
 
 DEF_CMD(JE, 15,
                 {
-//                Stack_Pop (stk, &helper_1);
-//                Stack_Pop (stk, &helper_2);
-
                 pos++;
 
-//                if (helper_1 == helper_2)
-//                {
-//                    int sum = * (int*) (buf + pos);
-//                    pos = sum;
-//                }
-//                else
-//                {
-                    pos += sizeof (int);
-//                }
-//
-//                Stack_Push (stk, helper_2);
-//                Stack_Push (stk, helper_1);
+                int sum = * (int*) (buf + pos);
+
+                Pop_Reg (res, &counter, E_si);
+                Pop_Reg (res, &counter, E_di);
+
+                Cmp_Si_Di (res, &counter);
+
+                res[counter++] = C_je;
+                * (int *) (res + counter) = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
+
+                counter++;
+                pos += sizeof (int);
 
                 break;
-                }, 1)
+                }, 1, 2)
 
 DEF_CMD(JNE, 16,
                 {
-//                Stack_Pop (stk, &helper_1);
-//                Stack_Pop (stk, &helper_2);
-
                 pos++;
 
-//                if (helper_1 != helper_2)
-//                {
-//                    int sum = * (int*) (buf + pos);
-//                    pos = sum;
-//                }
-//                else
-//                {
-                    pos += sizeof (int);
-//                }
+                int sum = * (int*) (buf + pos);
 
-//                Stack_Push (stk, helper_2);
-//                Stack_Push (stk, helper_1);
+                Pop_Reg (res, &counter, E_si);
+                Pop_Reg (res, &counter, E_di);
+
+                Cmp_Si_Di (res, &counter);
+
+                res[counter++] = C_jne;
+                * (int *) (res + counter) = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
+
+                counter++;
+                pos += sizeof (int);
 
                 break;
-                }, 1)
+                }, 1, 2)
 
 
 DEF_CMD(OUT, 22,
@@ -343,7 +330,7 @@ DEF_CMD(OUT, 22,
 //                printf ("%d\n", helper_1);
 
                 break;
-                }, 0)
+                }, 0, 0)
 
 
 
@@ -357,7 +344,7 @@ DEF_CMD(PRT, 72,
 //                printf ("%s ", helper);
 
                 break;
-                }, 1)
+                }, 1, 0)
 
 
 DEF_CMD(END, 0,
@@ -375,5 +362,5 @@ DEF_CMD(END, 0,
                     res[counter++] = C_end[i];
                 }
 
-                pos = sz_file + 1;
-                }, 0)
+                pos += 1;
+                }, 0, 12)
