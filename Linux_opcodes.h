@@ -34,7 +34,7 @@ const unsigned char C_div_bx[3]    = {0x66, 0xf7, 0xf3};
 
 const unsigned char C_mul_bx[3]    = {0x66, 0xf7, 0xe3};
 
-const unsigned char C_cmp_si_di[3] = {0x66, 0x39, 0xf3};
+const unsigned char C_cmp_si_di[3] = {0x66, 0x39, 0xfe};
 
 const unsigned char C_jmp = 0xeb;
 const unsigned char C_je  = 0x74;
