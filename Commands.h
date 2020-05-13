@@ -30,9 +30,7 @@ DEF_CMD(PUSH, 1,
                 pos += sizeof (int);
 
                 res[counter++] = C_push_not_reg;
-                * (int *) (res + counter) = sum;
-
-                counter += sizeof (int);
+                res[counter++] = sum;
 
                 break;
                 }, 1, 2)
