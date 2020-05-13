@@ -46,13 +46,14 @@ const unsigned char C_mov_rax_not_reg = 0xb8;
 
 const unsigned char C_mov_rsi_offset[2] = {0x48, 0xbe};
 
-const unsigned char C_jmp = 0xeb;
-const unsigned char C_je  = 0x74;
-const unsigned char C_ja  = 0x77;
-const unsigned char C_jae = 0x73;
-const unsigned char C_jne = 0x75;
-const unsigned char C_jb  = 0x72;
-const unsigned char C_jbe = 0x76;
+const unsigned char C_jmp = 0xe9;
+
+const unsigned char C_je[2]   = {0x0f, 0x84};
+const unsigned char C_ja[2]   = {0x0f, 0x87};
+const unsigned char C_jae[2]  = {0x0f, 0x83};
+const unsigned char C_jne[2]  = {0x0f, 0x85};
+const unsigned char C_jb[2]   = {0x0f, 0x82};
+const unsigned char C_jbe[2]  = {0x0f, 0x86};
 
 enum reg_offsets {
                     E_ax = 0,

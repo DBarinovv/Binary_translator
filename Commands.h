@@ -210,7 +210,8 @@ DEF_CMD(JA, 11,
 
                 Cmp_Si_Di (res, &counter);
 
-                res[counter++] = C_ja;
+                res[counter++] = C_ja[0];
+                res[counter++] = C_ja[1];
                 * (int *) (res + counter) = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
 
                 counter++;
@@ -231,7 +232,8 @@ DEF_CMD(JAE, 12,
 
                 Cmp_Si_Di (res, &counter);
 
-                res[counter++] = C_jae;
+                res[counter++] = C_jae[0];
+                res[counter++] = C_jae[1];
                 * (int *) (res + counter) = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
 
                 counter++;
@@ -252,7 +254,8 @@ DEF_CMD(JB, 13,
 
                 Cmp_Si_Di (res, &counter);
 
-                res[counter++] = C_jb;
+                res[counter++] = C_jb[0];
+                res[counter++] = C_jb[1];
                 * (int *) (res + counter) = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
 
                 counter++;
@@ -273,7 +276,8 @@ DEF_CMD(JBE, 14,
 
                 Cmp_Si_Di (res, &counter);
 
-                res[counter++] = C_jbe;
+                res[counter++] = C_jbe[0];
+                res[counter++] = C_jbe[1];
                 * (int *) (res + counter) = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
 
                 counter++;
@@ -294,7 +298,8 @@ DEF_CMD(JE, 15,
 
                 Cmp_Si_Di (res, &counter);
 
-                res[counter++] = C_je;
+                res[counter++] = C_je[0];
+                res[counter++] = C_je[1];
                 * (int *) (res + counter) = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
 
                 counter++;
@@ -315,7 +320,8 @@ DEF_CMD(JNE, 16,
 
                 Cmp_Si_Di (res, &counter);
 
-                res[counter++] = C_jne;
+                res[counter++] = C_jne[0];
+                res[counter++] = C_jne[1];
                 * (int *) (res + counter) = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
 
                 counter++;
