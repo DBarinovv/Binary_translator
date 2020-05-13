@@ -3,17 +3,19 @@
 // Check if argument is register (ax, bx, cx, dx)
 //=============================================================================
 
+// Help_functions.h
+
 int Check_If_Reg (char *elem)
 {
     if (*elem == 'a' && *(elem + 1) == 'x')         // ax
     {
         return 0;
     }
-    else if (*elem == 'b' && *(elem + 1) == 'x')    // bx
+    else if (*elem == 'c' && *(elem + 1) == 'x')    // bx
     {
         return 1;
     }
-    else if (*elem == 'c' && *(elem + 1) == 'x')    // cx
+    else if (*elem == 'b' && *(elem + 1) == 'x')    // cx
     {
         return 2;
     }

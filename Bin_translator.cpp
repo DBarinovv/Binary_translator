@@ -4,17 +4,22 @@
 //}============================================================================
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
 
-#include "my_elf.h"
+#include "My_elf.h"
+#include "Linux_opcodes.h"
 #include "OneginLib.h"
 #include "enum.h"
+#include "Help_functions.h"
 
 //=============================================================================
 
 const elf::Elf64_Half	C_my_e_type      = 0x0002;
 const elf::Elf64_Half	C_my_e_machine   = 0x003E;
 const elf::Elf64_Word	C_my_e_version   = 0x00000001;
-const elf::Elf64_Addr	C_my_e_entry     = 0x0000000000400078; // ch
+const elf::Elf64_Addr	C_my_e_entry     = 0x0000000000400078;
 const elf::Elf64_Off	C_my_e_phoff     = 0x0000000000000040;
 const elf::Elf64_Off	C_my_e_shoff     = 0x00000000;
 const elf::Elf64_Word	C_my_e_flags     = 0x00000000;
@@ -28,12 +33,12 @@ const elf::Elf64_Half	C_my_e_shstrndx  = 0x0000; // because without any sections
 
 const elf::Elf64_Word	C_my_p_type   = 0x00000001;
 const elf::Elf64_Word	C_my_p_flags  = 0x00000005;
-const elf::Elf64_Off 	C_my_p_offset = 0x0000000000000000; // ch
-const elf::Elf64_Addr	C_my_p_vaddr  = 0x0000000000400000; // ch
-const elf::Elf64_Addr	C_my_p_paddr  = 0x0000000000400000; // ch
+const elf::Elf64_Off 	C_my_p_offset = 0x0000000000000000;
+const elf::Elf64_Addr	C_my_p_vaddr  = 0x0000000000400000;
+const elf::Elf64_Addr	C_my_p_paddr  = 0x0000000000400000;
 const elf::Elf64_Xword	C_my_p_filesz = 0x00000000000000B0; // TBA
 const elf::Elf64_Xword	C_my_p_memsz  = 0x00000000000000B0; // TBA
-const elf::Elf64_Xword	C_my_p_align  = 0x0000000000001000; // ch
+const elf::Elf64_Xword	C_my_p_align  = 0x0000000000001000;
 
 //=============================================================================
 
@@ -43,7 +48,27 @@ void Make_Default_Program_Header (elf::Elf64_Phdr *program_header);
 
 //-----------------------------------------------------------------------------
 
-void Un_Fold_If_Have_Arg (char *res, int *pos, const char opcode);
+inline void Move_Si_Ax (char *res, int *counter);
+
+inline void Move_Di_Bx (char *res, int *counter);
+
+inline void Pop_Reg    (char *res, int *counter, const int offset);
+
+inline void Push_Reg   (char *res, int *counter, const int offset);
+
+inline void Move_Ax_Si (char *res, int *counter);
+
+inline void Move_Bx_Di (char *res, int *counter);
+
+inline void Add_Ax_Bx  (char *res, int *counter);
+
+inline void Sub_Ax_Bx  (char *res, int *counter);
+
+inline void Mul_Bx     (char *res, int *counter);
+
+inline void Div_Bx     (char *res, int *counter);
+
+inline void Xor_Ah_Ah  (char *res, int *counter);
 
 //=============================================================================
 
@@ -71,63 +96,53 @@ int main ()
 
     // ASSERTS!!!!!!
 
-//    const int c_offset_of_program = 0x78; // address start of the program
+    const int c_offset_of_program = 0x78; // address start of the program
 
-//    elf::Elf64_Phdr text_header = {};
-//    Make_Default_Program_Header (&text_header);
-//
-//    text_header.p_flags  = 0x00000005;
-//    text_header.p_offset = 0x0000000000001000;
-//    text_header.p_vaddr  = 0x0000000000401000;
-//    text_header.p_paddr  = 0x0000000000401000;
-//    text_header.p_filesz = 12;
-//    text_header.p_memsz  = 12;
+     #define DEF_CMD(name, num, code, arg)                                           \
+        case CMD_##name:                                                             \
+            code                                                                     \
 
 
-//     #define DEF_CMD(name, num, code, arg, opcode)                                             \
-//        case CMD_##name:                                                                       \
-//            if (arg == 1)                                                                      \
-//            {                                                                                  \
-//                Un_Fold_If_Have_Arg (res, &pos, opcode);                                       \
-//            }                                                                                  \
-//            else
-//            {
-//
-//            }
-//                                                                                               \
-//            break;
-//
-//
-//    char *res = (char *) calloc (sz_file + 1, sizeof (char));
-//
-//    int pos = 0;
-//
-//    while (pos < sz_file)
-//    {
-//        switch (buf[pos])
-//        {
-//        #include "Commands.h"
-//        default:
-//            break;
-//        }
-//
-//        pos++;
-//    }
-//
-//
-//
-//    #indef DEF_CMD
+    #define REALLOC_RES                                                              \
+    {                                                                                \
+        if (counter + 10 >= sz_res)                                                  \
+        {                                                                            \
+            sz_res *= 2;                                                             \
+            res = (char *) realloc (res, sz_res * sizeof (char)); assert (res);      \
+        }                                                                            \
+    }
 
 
-    program_header.p_filesz = 0xB0;
-    program_header.p_memsz  = 0xB0;
+    // ax, cx, bx, dx
+    char *res = (char *) calloc (sz_file + 1, sizeof (char));
+
+    int counter = 0;
+    int pos = 0;
+    int sz_res = sz_file;
+
+    while (pos < sz_file)
+    {
+        switch (buf[pos])
+        {
+        #include "Commands.h"
+        default:
+            break;
+        }
+    }
+
+
+
+    #undef DEF_CMD
+    #undef REALLOC_RES
+
+
+    program_header.p_filesz = counter + 1;
+    program_header.p_memsz  = counter + 1;
 
     fwrite (&elf_header,     sizeof (elf::Elf64_Ehdr), 1, fout);
     fwrite (&program_header, sizeof (elf::Elf64_Phdr), 1, fout);
-//    fwrite (&text_header,    sizeof (elf::Elf64_Phdr), 1, fout);
 
-    char res[] = {0x90, 0xb8, 0x3c, 0, 0, 0, 0xbf, 0, 0, 0, 0, 0x0f, 0x05};
-    fwrite (res, 13, sizeof (char), fout);
+    fwrite (res, counter, sizeof (char), fout);
 
     return 0;
 }
@@ -178,14 +193,99 @@ void Make_Default_Program_Header (elf::Elf64_Phdr *program_header)
 
 //=============================================================================
 
-void Un_Fold_If_Have_Arg (char *res, int *pos, const char opcode)
+inline void Move_Si_Ax (char *res, int *counter)
 {
-
-
+    res[(*counter)++] = C_mov_si_ax[0];              //{
+    res[(*counter)++] = C_mov_si_ax[1];              //| mov si, ax
+    res[(*counter)++] = C_mov_si_ax[2];              //{
 }
 
+//-----------------------------------------------------------------------------
 
+inline void Move_Di_Bx (char *res, int *counter)
+{
+    res[(*counter)++] = C_mov_di_bx[0];              //{
+    res[(*counter)++] = C_mov_di_bx[1];              //| mov di, bx
+    res[(*counter)++] = C_mov_di_bx[2];              //{
+}
 
+//-----------------------------------------------------------------------------
+
+inline void Pop_Reg (char *res, int *counter, const int offset)
+{
+    res[(*counter)++] = C_pop_reg;
+    res[(*counter)++] = C_pop_start_reg + offset;
+}
+
+//-----------------------------------------------------------------------------
+
+inline void Push_Reg (char *res, int *counter, const int offset)
+{
+    res[(*counter)++] = C_push_reg;
+    res[(*counter)++] = C_push_start_reg + offset;
+}
+
+//-----------------------------------------------------------------------------
+
+inline void Move_Ax_Si (char *res, int *counter)
+{
+    res[(*counter)++] = C_mov_ax_si[0];              //{
+    res[(*counter)++] = C_mov_ax_si[1];              //| mov ax, si
+    res[(*counter)++] = C_mov_ax_si[2];              //{
+}
+
+//-----------------------------------------------------------------------------
+
+inline void Move_Bx_Di (char *res, int *counter)
+{
+    res[(*counter)++] = C_mov_bx_di[0];                 //{
+    res[(*counter)++] = C_mov_bx_di[1];                 //| mov bx, di
+    res[(*counter)++] = C_mov_bx_di[2];                 //{
+}
+
+//-----------------------------------------------------------------------------
+
+inline void Add_Ax_Bx (char *res, int *counter)
+{
+    res[(*counter)++] = C_add_ax_bx[0];                 //{
+    res[(*counter)++] = C_add_ax_bx[1];                 //| add ax, bx
+    res[(*counter)++] = C_add_ax_bx[2];                 //{
+}
+
+//-----------------------------------------------------------------------------
+
+inline void Sub_Ax_Bx (char *res, int *counter)
+{
+    res[(*counter)++] = C_sub_ax_bx[0];              //{
+    res[(*counter)++] = C_sub_ax_bx[1];              //| sub ax, bx
+    res[(*counter)++] = C_sub_ax_bx[2];              //{
+}
+
+//-----------------------------------------------------------------------------
+
+inline void Mul_Bx (char *res, int *counter)
+{
+    res[(*counter)++] = C_mul_bx[0];                 //{
+    res[(*counter)++] = C_mul_bx[1];                 //| mul bx
+    res[(*counter)++] = C_mul_bx[2];                 //{
+}
+
+//-----------------------------------------------------------------------------
+
+inline void Div_Bx (char *res, int *counter)
+{
+    res[(*counter)++] = C_div_bx[0];                 //{
+    res[(*counter)++] = C_div_bx[1];                 //| div bx
+    res[(*counter)++] = C_div_bx[2];                 //{
+}
+
+//-----------------------------------------------------------------------------
+
+inline void Xor_Ah_Ah (char *res, int *counter)
+{
+    res[(*counter)++] = C_xor_ah_ah[0];              //{
+    res[(*counter)++] = C_xor_ah_ah[1];              //{ xor ah, ah
+}
 
 
 //=============================================================================
