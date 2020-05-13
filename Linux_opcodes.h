@@ -46,7 +46,7 @@ const unsigned char C_mov_rax_not_reg = 0xb8;
 
 const unsigned char C_mov_rsi_offset[2] = {0x48, 0xbe};
 
-const unsigned char C_jmp = 0xe9;
+const unsigned char C_jmp = 0xeb; // 0xe9
 
 const unsigned char C_je[2]   = {0x0f, 0x84};
 const unsigned char C_ja[2]   = {0x0f, 0x87};
