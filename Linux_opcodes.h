@@ -36,7 +36,7 @@ const char C_mul_bx[3]    = {0x66, 0xf7, 0xe3};
 
 enum reg_offsets {
                     E_ax = 0,
-                    E_bx = 2,
+                    E_bx = 3,
                     E_cx = 1,
-                    E_dx = 3,
+                    E_dx = 2,
                     };
