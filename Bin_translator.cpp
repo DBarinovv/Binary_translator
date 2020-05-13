@@ -291,18 +291,18 @@ inline void Move_Ax_Si (unsigned char *res, int *counter)
 
 inline void Move_Bx_Di (unsigned char *res, int *counter)
 {
-    res[(*counter)++] = C_mov_bx_di[0];                 //{
-    res[(*counter)++] = C_mov_bx_di[1];                 //| mov bx, di
-    res[(*counter)++] = C_mov_bx_di[2];                 //{
+    res[(*counter)++] = C_mov_bx_di[0];              //{
+    res[(*counter)++] = C_mov_bx_di[1];              //| mov bx, di
+    res[(*counter)++] = C_mov_bx_di[2];              //{
 }
 
 //-----------------------------------------------------------------------------
 
 inline void Add_Ax_Bx (unsigned char *res, int *counter)
 {
-    res[(*counter)++] = C_add_ax_bx[0];                 //{
-    res[(*counter)++] = C_add_ax_bx[1];                 //| add ax, bx
-    res[(*counter)++] = C_add_ax_bx[2];                 //{
+    res[(*counter)++] = C_add_ax_bx[0];              //{
+    res[(*counter)++] = C_add_ax_bx[1];              //| add ax, bx
+    res[(*counter)++] = C_add_ax_bx[2];              //{
 }
 
 //-----------------------------------------------------------------------------

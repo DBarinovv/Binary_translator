@@ -326,8 +326,7 @@ DEF_CMD(JNE, 16,
 
                 Cmp_Si_Di (res, &counter);
 
-//                if (offsets_arr[sum] - offsets_arr[pos - 1] - 2 >= 256)
-//                {
+
                 res[counter++] = C_jne[0];
                 res[counter++] = C_jne[1];
 
