@@ -190,9 +190,15 @@ DEF_CMD(JMP, 17,
                 int sum = * (int*) (buf + pos);
 
                 res[counter++] = C_jmp;
-                * (int *) (res + counter) = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
 
-                counter++;
+                int offset = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
+
+                res[counter++] = offset % 256;
+                offset /= 256;
+                res[counter++] = offset % 256;
+                res[counter++] = 0;
+                res[counter++] = 0;
+
                 pos += sizeof (int);
 
                 break;
