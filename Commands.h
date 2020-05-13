@@ -326,6 +326,7 @@ DEF_CMD(JNE, 16,
                 res[counter++] = C_jne[1];
 
                 int offset = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
+
                 res[counter++] = offset % 256;
                 offset /= 256;
                 res[counter++] = offset % 256;
@@ -335,7 +336,7 @@ DEF_CMD(JNE, 16,
                 pos += sizeof (int);
 
                 break;
-                }, 1, 12)
+                }, 1, 13)
 
 
 DEF_CMD(OUT, 22,
@@ -365,7 +366,7 @@ DEF_CMD(OUT, 22,
                 res[pos_offset + 2] = ' ';
 
                 break;
-                }, 0, 8)
+                }, 0, 10)
 
 
 
@@ -399,7 +400,6 @@ DEF_CMD(PRT, 72,
 
                 REALLOC_RES
 
-
                 res[counter++] = C_mov_rdx_offset[0];
                 res[counter++] = C_mov_rdx_offset[1];
                 res[counter++] = C_mov_rdx_offset[2];
@@ -416,7 +416,6 @@ DEF_CMD(PRT, 72,
                 res[counter++] = 0;
 
                 REALLOC_RES
-
 
                 res[counter++] = C_mov_rsi_offset[0];
                 res[counter++] = C_mov_rsi_offset[1];
