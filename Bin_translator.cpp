@@ -136,8 +136,8 @@ int main ()
     #undef REALLOC_RES
 
 
-    program_header.p_filesz = counter + 1;
-    program_header.p_memsz  = counter + 1;
+    program_header.p_filesz = counter * 2;
+    program_header.p_memsz  = counter * 2;
 
     fwrite (&elf_header,     sizeof (elf::Elf64_Ehdr), 1, fout);
     fwrite (&program_header, sizeof (elf::Elf64_Phdr), 1, fout);
