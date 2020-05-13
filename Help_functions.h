@@ -15,11 +15,11 @@ int Check_If_Reg (char *elem)
     {
         return 1;
     }
-    else if (*elem == 'b' && *(elem + 1) == 'x')    // cx
+    else if (*elem == 'd' && *(elem + 1) == 'x')    // cx
     {
         return 2;
     }
-    else if (*elem == 'd' && *(elem + 1) == 'x')    // dx
+    else if (*elem == 'b' && *(elem + 1) == 'x')    // dx
     {
         return 3;
     }
