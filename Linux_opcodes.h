@@ -36,6 +36,16 @@ const unsigned char C_mul_bx[3]    = {0x66, 0xf7, 0xe3};
 
 const unsigned char C_cmp_si_di[3] = {0x66, 0x39, 0xfe};
 
+const unsigned char C_mov_offset_si[4]  = {0x66, 0x89, 0x34, 0x25};
+
+const unsigned char C_mov_rdx_offset[4] = {0x48, 0x8b, 0x14, 0x25};
+
+const unsigned char C_mov_rdi_not_reg = 0xbf;
+
+const unsigned char C_mov_rax_not_reg = 0xb8;
+
+const unsigned char C_mov_rsi_offset[2] = {0x48, 0xbe};
+
 const unsigned char C_jmp = 0xeb;
 const unsigned char C_je  = 0x74;
 const unsigned char C_ja  = 0x77;

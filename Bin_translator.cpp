@@ -97,12 +97,12 @@ int main ()
     elf::Elf64_Phdr program_header = {};
     Make_Default_Program_Header (&program_header);
 
-    int *offsets_arr = (int *) calloc (sz_file + 1, sizeof (int));
+    int pos_offset = sz_file + 1;
+    int *offsets_arr = (int *) calloc (sz_file * 2, sizeof (int));
     Make_Ofssets_Arr (buf, offsets_arr, sz_file);
 
     // ASSERTS!!!!!!
 
-    const int c_offset_of_program = 0x78; // address start of the program
 
      #define DEF_CMD(name, num, code, arg, offset)                                   \
         case CMD_##name:                                                             \
@@ -119,7 +119,7 @@ int main ()
     }
 
 
-    unsigned char *res = (unsigned char *) calloc (sz_file + 1, sizeof (unsigned char));
+    unsigned char *res = (unsigned char *) calloc (sz_file * 10, sizeof (unsigned char));
 
     int counter = 0;
     int pos = 0;
@@ -226,7 +226,7 @@ void Make_Ofssets_Arr (char *buf, int *offsets_arr, const int sz_file)
     int pos = 0;
     int cnt = 0;
 
-    while (pos < sz_file)
+    while (pos <= sz_file)
     {
         switch (buf[pos])
         {
@@ -236,7 +236,12 @@ void Make_Ofssets_Arr (char *buf, int *offsets_arr, const int sz_file)
         }
     }
 
-    #undef DEF_CMD[69] = 75
+    for (int i = sz_file + 1; i < 2 * sz_file; i++)
+    {
+        offsets_arr[i] = offsets_arr[i - 1] + 1;
+    }
+
+    #undef DEF_CMD
 }
 
 //=============================================================================

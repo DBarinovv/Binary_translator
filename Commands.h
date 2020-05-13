@@ -184,6 +184,7 @@ DEF_CMD(DIV, 6,
 
 DEF_CMD(JMP, 17,
                 {
+                REALLOC_RES
                 pos++;
 
                 int sum = * (int*) (buf + pos);
@@ -199,6 +200,7 @@ DEF_CMD(JMP, 17,
 
 DEF_CMD(JA, 11,
                 {
+                REALLOC_RES
                 pos++;
 
                 int sum = * (int*) (buf + pos);
@@ -215,10 +217,11 @@ DEF_CMD(JA, 11,
                 pos += sizeof (int);
 
                 break;
-                }, 1, 2)
+                }, 1, 9)
 
 DEF_CMD(JAE, 12,
                 {
+                REALLOC_RES
                 pos++;
 
                 int sum = * (int*) (buf + pos);
@@ -235,10 +238,11 @@ DEF_CMD(JAE, 12,
                 pos += sizeof (int);
 
                 break;
-                }, 1, 2)
+                }, 1, 9)
 
 DEF_CMD(JB, 13,
                 {
+                REALLOC_RES
                 pos++;
 
                 int sum = * (int*) (buf + pos);
@@ -255,10 +259,11 @@ DEF_CMD(JB, 13,
                 pos += sizeof (int);
 
                 break;
-                }, 1, 2)
+                }, 1, 9)
 
 DEF_CMD(JBE, 14,
                 {
+                REALLOC_RES
                 pos++;
 
                 int sum = * (int*) (buf + pos);
@@ -275,10 +280,11 @@ DEF_CMD(JBE, 14,
                 pos += sizeof (int);
 
                 break;
-                }, 1, 2)
+                }, 1, 9)
 
 DEF_CMD(JE, 15,
                 {
+                REALLOC_RES
                 pos++;
 
                 int sum = * (int*) (buf + pos);
@@ -295,10 +301,11 @@ DEF_CMD(JE, 15,
                 pos += sizeof (int);
 
                 break;
-                }, 1, 2)
+                }, 1, 9)
 
 DEF_CMD(JNE, 16,
                 {
+                REALLOC_RES
                 pos++;
 
                 int sum = * (int*) (buf + pos);
@@ -315,38 +322,114 @@ DEF_CMD(JNE, 16,
                 pos += sizeof (int);
 
                 break;
-                }, 1, 2)
+                }, 1, 9)
 
 
 DEF_CMD(OUT, 22,
                 {
+                REALLOC_RES
                 pos++;
 
-//                helper_1 = Stack_Top (stk);
-//                Stack_Pop (stk, &helper_1);
+                Pop_Reg (res, &counter, E_si);
 
-//                printf ("%d\n", helper_1);
+                res[counter++] = C_mov_offset_si[0];
+                res[counter++] = C_mov_offset_si[1];
+                res[counter++] = C_mov_offset_si[2];
+                res[counter++] = C_mov_offset_si[3];
+
+                int full_offset = 0x400000 + 0x78 + pos_offset + 1;
+
+                res[counter++] = full_offset % 256;
+                full_offset /= 256;
+                res[counter++] = full_offset % 256;
+                full_offset /= 256;
+                res[counter++] = full_offset % 256;
+                full_offset /= 256;
+                res[counter++] = 0;
+
+                res[pos_offset] += 2;
+                res[pos_offset + 1] = buf[pos] + '0';
+                res[pos_offset + 2] = ' ';
 
                 break;
-                }, 0, 0)
+                }, 0, 8)
 
 
 
 DEF_CMD(PRT, 72,
                 {
+                REALLOC_RES
                 pos++;
 
                 char* helper = (buf + pos);
-                pos += (strlen (helper));
+                int len = strlen (helper);
 
-//                printf ("%s ", helper);
+                pos += (len);
+
+
+                for (int i = 0; i < len; i++)
+                {
+                    res[pos_offset + res[pos_offset] + 1] = helper[i];
+                }
+
+                res[pos_offset] += strlen (helper);
+
+                res[counter++] = C_mov_rax_not_reg;
+                res[counter++] = 1;
+                res[counter++] = 0;
+                res[counter++] = 0;
+
+                res[counter++] = C_mov_rdi_not_reg;
+                res[counter++] = 1;
+                res[counter++] = 0;
+                res[counter++] = 0;
+
+                REALLOC_RES
+
+
+                res[counter++] = C_mov_rdx_offset[0];
+                res[counter++] = C_mov_rdx_offset[1];
+                res[counter++] = C_mov_rdx_offset[2];
+                res[counter++] = C_mov_rdx_offset[3];
+
+                int full_offset =  0x400000 + 0x78 + pos_offset;
+
+                res[counter++] = full_offset % 256;
+                full_offset /= 256;
+                res[counter++] = full_offset % 256;
+                full_offset /= 256;
+                res[counter++] = full_offset % 256;
+                full_offset /= 256;
+                res[counter++] = 0;
+
+                REALLOC_RES
+
+
+                res[counter++] = C_mov_rsi_offset[0];
+                res[counter++] = C_mov_rsi_offset[1];
+
+                int ful_offset =  0x400000 + 0x78 + pos_offset + 1;
+
+                res[counter++] = full_offset % 256;
+                full_offset /= 256;
+                res[counter++] = full_offset % 256;
+                full_offset /= 256;
+                res[counter++] = full_offset % 256;
+                full_offset /= 256;
+                res[counter++] = 0;
+                res[counter++] = 0;
+                res[counter++] = 0;
+
+
+                pos_offset += res[pos_offset] + 1;
 
                 break;
-                }, 1, 0)
+                }, 1, 24)
 
 
 DEF_CMD(END, 0,
                 {
+                REALLOC_RES
 
                 for (int i = 0; i < 6; i++)
                 {
