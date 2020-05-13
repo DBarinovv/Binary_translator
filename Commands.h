@@ -216,6 +216,8 @@ DEF_CMD(JA, 11,
 
                 Cmp_Si_Di (res, &counter);
 
+                REALLOC_RES
+
                 res[counter++] = 0x77;
 
                 int offset = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
@@ -243,6 +245,8 @@ DEF_CMD(JAE, 12,
                 Pop_Reg (res, &counter, E_di);
 
                 Cmp_Si_Di (res, &counter);
+
+                REALLOC_RES
 
                 res[counter++] = C_jae[0];
                 res[counter++] = C_jae[1];
@@ -332,6 +336,7 @@ DEF_CMD(JNE, 16,
 
                 Cmp_Si_Di (res, &counter);
 
+                REALLOC_RES
 
                 res[counter++] = 0x75;
 
@@ -354,26 +359,26 @@ DEF_CMD(OUT, 22,
                 REALLOC_RES
                 pos++;
 
-                Pop_Reg (res, &counter, E_si);
-
-                res[counter++] = C_mov_offset_si[0];
-                res[counter++] = C_mov_offset_si[1];
-                res[counter++] = C_mov_offset_si[2];
-                res[counter++] = C_mov_offset_si[3];
-
-                int full_offset = 0x400000 + 0x78 + pos_offset + 1;
-
-                res[counter++] = full_offset % 256;
-                full_offset /= 256;
-                res[counter++] = full_offset % 256;
-                full_offset /= 256;
-                res[counter++] = full_offset % 256;
-                full_offset /= 256;
-                res[counter++] = 0;
-
-                res[pos_offset] += 2;
-                res[pos_offset + 1] = buf[pos] + '0';
-                res[pos_offset + 2] = ' ';
+//                Pop_Reg (res, &counter, E_si);
+//
+//                res[counter++] = C_mov_offset_si[0];
+//                res[counter++] = C_mov_offset_si[1];
+//                res[counter++] = C_mov_offset_si[2];
+//                res[counter++] = C_mov_offset_si[3];
+//
+//                int full_offset = 0x400000 + 0x78 + pos_offset + 1;
+//
+//                res[counter++] = full_offset % 256;
+//                full_offset /= 256;
+//                res[counter++] = full_offset % 256;
+//                full_offset /= 256;
+//                res[counter++] = full_offset % 256;
+//                full_offset /= 256;
+//                res[counter++] = 0;
+//
+//                res[pos_offset] += 2;
+//                res[pos_offset + 1] = buf[pos] + '0';
+//                res[pos_offset + 2] = ' ';
 
                 break;
                 }, 0, 10)
@@ -391,59 +396,59 @@ DEF_CMD(PRT, 72,
                 pos += (len);
 
 
-                for (int i = 0; i < len; i++)
-                {
-                    res[pos_offset + res[pos_offset] + 1] = helper[i];
-                }
-
-                res[pos_offset] += strlen (helper);
-
-                res[counter++] = C_mov_rax_not_reg;
-                res[counter++] = 1;
-                res[counter++] = 0;
-                res[counter++] = 0;
-
-                res[counter++] = C_mov_rdi_not_reg;
-                res[counter++] = 1;
-                res[counter++] = 0;
-                res[counter++] = 0;
-
-                REALLOC_RES
-
-                res[counter++] = C_mov_rdx_offset[0];
-                res[counter++] = C_mov_rdx_offset[1];
-                res[counter++] = C_mov_rdx_offset[2];
-                res[counter++] = C_mov_rdx_offset[3];
-
-                int full_offset =  0x400000 + 0x78 + pos_offset;
-
-                res[counter++] = full_offset % 256;
-                full_offset /= 256;
-                res[counter++] = full_offset % 256;
-                full_offset /= 256;
-                res[counter++] = full_offset % 256;
-                full_offset /= 256;
-                res[counter++] = 0;
-
-                REALLOC_RES
-
-                res[counter++] = C_mov_rsi_offset[0];
-                res[counter++] = C_mov_rsi_offset[1];
-
-                int ful_offset =  0x400000 + 0x78 + pos_offset + 1;
-
-                res[counter++] = full_offset % 256;
-                full_offset /= 256;
-                res[counter++] = full_offset % 256;
-                full_offset /= 256;
-                res[counter++] = full_offset % 256;
-                full_offset /= 256;
-                res[counter++] = 0;
-                res[counter++] = 0;
-                res[counter++] = 0;
-
-
-                pos_offset += res[pos_offset] + 1;
+//                for (int i = 0; i < len; i++)
+//                {
+//                    res[pos_offset + res[pos_offset] + 1] = helper[i];
+//                }
+//
+//                res[pos_offset] += strlen (helper);
+//
+//                res[counter++] = C_mov_rax_not_reg;
+//                res[counter++] = 1;
+//                res[counter++] = 0;
+//                res[counter++] = 0;
+//
+//                res[counter++] = C_mov_rdi_not_reg;
+//                res[counter++] = 1;
+//                res[counter++] = 0;
+//                res[counter++] = 0;
+//
+//                REALLOC_RES
+//
+//                res[counter++] = C_mov_rdx_offset[0];
+//                res[counter++] = C_mov_rdx_offset[1];
+//                res[counter++] = C_mov_rdx_offset[2];
+//                res[counter++] = C_mov_rdx_offset[3];
+//
+//                int full_offset =  0x400000 + 0x78 + pos_offset;
+//
+//                res[counter++] = full_offset % 256;
+//                full_offset /= 256;
+//                res[counter++] = full_offset % 256;
+//                full_offset /= 256;
+//                res[counter++] = full_offset % 256;
+//                full_offset /= 256;
+//                res[counter++] = 0;
+//
+//                REALLOC_RES
+//
+//                res[counter++] = C_mov_rsi_offset[0];
+//                res[counter++] = C_mov_rsi_offset[1];
+//
+//                int ful_offset =  0x400000 + 0x78 + pos_offset + 1;
+//
+//                res[counter++] = full_offset % 256;
+//                full_offset /= 256;
+//                res[counter++] = full_offset % 256;
+//                full_offset /= 256;
+//                res[counter++] = full_offset % 256;
+//                full_offset /= 256;
+//                res[counter++] = 0;
+//                res[counter++] = 0;
+//                res[counter++] = 0;
+//
+//
+//                pos_offset += res[pos_offset] + 1;
 
                 break;
                 }, 1, 24)
