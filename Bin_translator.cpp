@@ -46,9 +46,10 @@ void Make_Default_ELF_Header (elf::Elf64_Ehdr *elf_header);
 
 void Make_Default_Program_Header (elf::Elf64_Phdr *program_header);
 
-//-----------------------------------------------------------------------------
+void Make_Res_File (const elf::Elf64_Ehdr *elf_header, elf::Elf64_Phdr *program_header,
+                    unsigned char *res, const int counter, FILE *fout);
 
-void Make_Ofssets_Arr (char *buf, int *offsets_arr, const int sz_file);
+void Make_Right_Jumps (const char *buf, unsigned char *res, const int *offsets_arr, const int sz_file);
 
 //-----------------------------------------------------------------------------
 
@@ -76,6 +77,12 @@ inline void Xor_Ah_Ah  (unsigned char *res, int *counter);
 
 inline void Cmp_Si_Di  (unsigned char *res, int *counter);
 
+inline void Add_Si_Di  (unsigned char *res, int *counter);
+
+inline void Sub_Si_Di  (unsigned char *res, int *counter);
+
+inline void Move_Si_Not_Reg (unsigned char *res, int *counter);
+
 //=============================================================================
 
 int main ()
@@ -85,10 +92,10 @@ int main ()
 
     int sz_file = Find_Size_Of_File (name_of_fin);
 
-    FILE* fin  = fopen (name_of_fin,  "rb");
-    FILE* fout = fopen (name_of_fout, "wb");
+    FILE* fin  = fopen (name_of_fin,  "rb"); assert (fin);
+    FILE* fout = fopen (name_of_fout, "wb"); assert (fout);
 
-    char *buf = (char *) calloc (sz_file + 1, sizeof (char));
+    char *buf = (char *) calloc (sz_file + 1, sizeof (char)); assert (buf);
     fread (buf, sizeof (char), sz_file + 1, fin);
 
     elf::Elf64_Ehdr elf_header = {};
@@ -97,16 +104,10 @@ int main ()
     elf::Elf64_Phdr program_header = {};
     Make_Default_Program_Header (&program_header);
 
-    int pos_offset = sz_file + 1;
-    int *offsets_arr = (int *) calloc (sz_file * 2, sizeof (int));
-    Make_Ofssets_Arr (buf, offsets_arr, sz_file);
 
-    // ASSERTS!!!!!!
-
-
-     #define DEF_CMD(name, num, code, arg, offset)                                   \
-        case CMD_##name:                                                             \
-            code                                                                     \
+     #define DEF_CMD(name, num, code, arg)                                   \
+        case CMD_##name:                                                     \
+            code                                                             \
 
 
     #define REALLOC_RES                                                                             \
@@ -118,6 +119,8 @@ int main ()
         }                                                                                           \
     }
 
+
+    int *offsets_arr = (int *) calloc (sz_file + 1, sizeof (int));
 
     unsigned char *res = (unsigned char *) calloc (sz_file * 10, sizeof (unsigned char));
 
@@ -138,14 +141,9 @@ int main ()
     #undef DEF_CMD
     #undef REALLOC_RES
 
+    Make_Right_Jumps (buf, res, offsets_arr, sz_file);
 
-    program_header.p_filesz = counter + 1;
-    program_header.p_memsz  = counter + 1;
-
-    fwrite (&elf_header,     sizeof (elf::Elf64_Ehdr), 1, fout);
-    fwrite (&program_header, sizeof (elf::Elf64_Phdr), 1, fout);
-
-    fwrite (res, counter, sizeof (char), fout);
+    Make_Res_File (&elf_header, &program_header, res, counter, fout);
 
     return 0;
 }
@@ -154,6 +152,8 @@ int main ()
 
 void Make_Default_ELF_Header (elf::Elf64_Ehdr *elf_header)
 {
+    assert (elf_header);
+
     elf_header->e_ident[0] = '';  // 0x7f
     elf_header->e_ident[1] = 'E';
     elf_header->e_ident[2] = 'L';
@@ -184,6 +184,8 @@ void Make_Default_ELF_Header (elf::Elf64_Ehdr *elf_header)
 
 void Make_Default_Program_Header (elf::Elf64_Phdr *program_header)
 {
+    assert (program_header);
+
     program_header->p_type	 = C_my_p_type;
     program_header->p_flags	 = C_my_p_flags;
     program_header->p_offset = C_my_p_offset;
@@ -194,159 +196,181 @@ void Make_Default_Program_Header (elf::Elf64_Phdr *program_header)
     program_header->p_align  = C_my_p_align;
 }
 
-//=============================================================================
+//-----------------------------------------------------------------------------
 
-void Make_Ofssets_Arr (char *buf, int *offsets_arr, const int sz_file)
+void Make_Res_File (const elf::Elf64_Ehdr *elf_header, elf::Elf64_Phdr *program_header, unsigned char *res, const int counter, FILE *fout)
 {
-     #define DEF_CMD(name, num, code, arg, offset)                                   \
-        case CMD_##name:                                                             \
-        {                                                                            \
-            offsets_arr[pos] = cnt;                                                  \
-            cnt += offset;                                                           \
-            pos++;                                                                   \
-                                                                                     \
-            if (arg == 1)                                                            \
-            {                                                                        \
-                if (strcmp (#name, "PRT") == 0)                                      \
-                {                                                                    \
-                    char* helper = (buf + pos);                                      \
-                    pos += (strlen (helper));                                        \
-                }                                                                    \
-                else                                                                 \
-                {                                                                    \
-                    int what_reg = Check_If_Reg (&buf[pos]);                         \
-                                                                                     \
-                    what_reg != -1 ? pos += 2 : pos += sizeof (int);                 \
-                }                                                                    \
-            }                                                                        \
-                                                                                     \
-            break;                                                                   \
-        }
+    program_header->p_filesz = counter + 1;
+    program_header->p_memsz  = counter + 1;
 
-    int pos = 0;
-    int cnt = 0;
+    fwrite (elf_header,     sizeof (elf::Elf64_Ehdr), 1, fout);
+    fwrite (program_header, sizeof (elf::Elf64_Phdr), 1, fout);
 
-    while (pos <= sz_file)
+    fwrite (res, counter, sizeof (unsigned char), fout);
+}
+
+//-----------------------------------------------------------------------------
+
+void Make_Right_Jumps (const char *buf, unsigned char *res, const int *offsets_arr, const int sz_file)
+{
+    int ind = 0;
+    while (ind < sz_file)
     {
-        switch (buf[pos])
+        if (11 <= buf[ind] && buf[ind] == 16) // ja, je, jae, jbe, jne, je
         {
-        #include "Commands.h"
-        default:
-            break;
+            printf ("First = [%x] - Second = [%x]  =  [%x]\n", offsets_arr[(* (int *) (buf + ind + 1))],  offsets_arr[ind], offsets_arr[(* (int *) (buf + ind + 1))] - offsets_arr[ind] - 5);
+            int dif = offsets_arr[(* (int *) (buf + ind + 1))] - offsets_arr[ind] - 14;
+
+            for (int i = 0; i < 4; i++)
+            {
+                res[offsets_arr[ind] + i + 10] = dif % 256;
+                dif /= 256;
+            }
         }
-    }
+        else if (buf[ind] == 17) // jmp
+        {
+            int dif = offsets_arr[(* (int *) (buf + ind + 1))] - offsets_arr[ind] - 5; // 5 = len (jump)
 
-    for (int i = sz_file + 1; i < 2 * sz_file; i++)
-    {
-        offsets_arr[i] = offsets_arr[i - 1] + 1;
-    }
+            for (int i = 0; i < 4; i++)
+            {
+                res[offsets_arr[ind] + i + 1] = dif % 256;
+                dif /= 256;
+            }
+        }
 
-    #undef DEF_CMD
+        ind++;
+    }
 }
 
 //=============================================================================
 
 inline void Move_Si_Ax (unsigned char *res, int *counter)
 {
-    res[(*counter)++] = C_mov_si_ax[0];              //{
+    res[(*counter)++] = C_mov_si_ax[0];              //}
     res[(*counter)++] = C_mov_si_ax[1];              //| mov si, ax
-    res[(*counter)++] = C_mov_si_ax[2];              //{
+    res[(*counter)++] = C_mov_si_ax[2];              //}
 }
 
 //-----------------------------------------------------------------------------
 
 inline void Move_Di_Bx (unsigned char *res, int *counter)
 {
-    res[(*counter)++] = C_mov_di_bx[0];              //{
+    res[(*counter)++] = C_mov_di_bx[0];              //}
     res[(*counter)++] = C_mov_di_bx[1];              //| mov di, bx
-    res[(*counter)++] = C_mov_di_bx[2];              //{
+    res[(*counter)++] = C_mov_di_bx[2];              //}
 }
 
 //-----------------------------------------------------------------------------
 
 inline void Pop_Reg (unsigned char *res, int *counter, const int offset)
 {
-    res[(*counter)++] = C_pop_reg;
-    res[(*counter)++] = C_pop_start_reg + offset;
+    res[(*counter)++] = C_pop_reg;                   //}
+    res[(*counter)++] = C_pop_start_reg + offset;    //} pop REGISTER
 }
 
 //-----------------------------------------------------------------------------
 
 inline void Push_Reg (unsigned char *res, int *counter, const int offset)
 {
-    res[(*counter)++] = C_push_reg;
-    res[(*counter)++] = C_push_start_reg + offset;
+    res[(*counter)++] = C_push_reg;                  //}
+    res[(*counter)++] = C_push_start_reg + offset;   //} push REGISTER
 }
 
 //-----------------------------------------------------------------------------
 
 inline void Move_Ax_Si (unsigned char *res, int *counter)
 {
-    res[(*counter)++] = C_mov_ax_si[0];              //{
+    res[(*counter)++] = C_mov_ax_si[0];              //}
     res[(*counter)++] = C_mov_ax_si[1];              //| mov ax, si
-    res[(*counter)++] = C_mov_ax_si[2];              //{
+    res[(*counter)++] = C_mov_ax_si[2];              //}
 }
 
 //-----------------------------------------------------------------------------
 
 inline void Move_Bx_Di (unsigned char *res, int *counter)
 {
-    res[(*counter)++] = C_mov_bx_di[0];              //{
+    res[(*counter)++] = C_mov_bx_di[0];              //}
     res[(*counter)++] = C_mov_bx_di[1];              //| mov bx, di
-    res[(*counter)++] = C_mov_bx_di[2];              //{
+    res[(*counter)++] = C_mov_bx_di[2];              //}
 }
 
 //-----------------------------------------------------------------------------
 
 inline void Add_Ax_Bx (unsigned char *res, int *counter)
 {
-    res[(*counter)++] = C_add_ax_bx[0];              //{
+    res[(*counter)++] = C_add_ax_bx[0];              //}
     res[(*counter)++] = C_add_ax_bx[1];              //| add ax, bx
-    res[(*counter)++] = C_add_ax_bx[2];              //{
+    res[(*counter)++] = C_add_ax_bx[2];              //}
 }
 
 //-----------------------------------------------------------------------------
 
 inline void Sub_Ax_Bx (unsigned char *res, int *counter)
 {
-    res[(*counter)++] = C_sub_ax_bx[0];              //{
+    res[(*counter)++] = C_sub_ax_bx[0];              //}
     res[(*counter)++] = C_sub_ax_bx[1];              //| sub ax, bx
-    res[(*counter)++] = C_sub_ax_bx[2];              //{
+    res[(*counter)++] = C_sub_ax_bx[2];              //}
 }
 
 //-----------------------------------------------------------------------------
 
 inline void Mul_Bx (unsigned char *res, int *counter)
 {
-    res[(*counter)++] = C_mul_bx[0];                 //{
+    res[(*counter)++] = C_mul_bx[0];                 //}
     res[(*counter)++] = C_mul_bx[1];                 //| mul bx
-    res[(*counter)++] = C_mul_bx[2];                 //{
+    res[(*counter)++] = C_mul_bx[2];                 //}
 }
 
 //-----------------------------------------------------------------------------
 
 inline void Div_Bx (unsigned char *res, int *counter)
 {
-    res[(*counter)++] = C_div_bx[0];                 //{
+    res[(*counter)++] = C_div_bx[0];                 //}
     res[(*counter)++] = C_div_bx[1];                 //| div bx
-    res[(*counter)++] = C_div_bx[2];                 //{
+    res[(*counter)++] = C_div_bx[2];                 //}
 }
 
 //-----------------------------------------------------------------------------
 
 inline void Xor_Ah_Ah (unsigned char *res, int *counter)
 {
-    res[(*counter)++] = C_xor_ah_ah[0];              //{
-    res[(*counter)++] = C_xor_ah_ah[1];              //{ xor ah, ah
+    res[(*counter)++] = C_xor_ah_ah[0];              //}
+    res[(*counter)++] = C_xor_ah_ah[1];              //} xor ah, ah
 }
 
 //-----------------------------------------------------------------------------
 
 inline void Cmp_Si_Di (unsigned char *res, int *counter)
 {
-    res[(*counter)++] = C_cmp_si_di[0];              //{
+    res[(*counter)++] = C_cmp_si_di[0];              //}
     res[(*counter)++] = C_cmp_si_di[1];              //| cmp si, di
-    res[(*counter)++] = C_cmp_si_di[2];              //{
+    res[(*counter)++] = C_cmp_si_di[2];              //}
+}
+
+//-----------------------------------------------------------------------------
+
+inline void Move_Si_Not_Reg (unsigned char *res, int *counter)
+{
+    res[(*counter)++] = C_mov_si_not_reg[0];         //}
+    res[(*counter)++] = C_mov_si_not_reg[1];         //} mov si, const
+}
+
+//-----------------------------------------------------------------------------
+
+inline void Add_Si_Di (unsigned char *res, int *counter)
+{
+    res[(*counter)++] = C_add_si_di[0];              //}
+    res[(*counter)++] = C_add_si_di[1];              //| add si, di
+    res[(*counter)++] = C_add_si_di[2];              //}
+}
+
+//-----------------------------------------------------------------------------
+
+inline void Sub_Si_Di (unsigned char *res, int *counter)
+{
+    res[(*counter)++] = C_sub_si_di[0];              //}
+    res[(*counter)++] = C_sub_si_di[1];              //| sub si, di
+    res[(*counter)++] = C_sub_si_di[2];              //}
 }
 
 

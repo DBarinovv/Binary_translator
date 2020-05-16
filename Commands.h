@@ -2,6 +2,8 @@
 
 DEF_CMD(PUSH, 1,
                 {
+                offsets_arr[pos] = counter;
+
                 pos++;
 
                 int what_reg = -1;
@@ -29,14 +31,21 @@ DEF_CMD(PUSH, 1,
                 int sum = * (int*) (buf + pos);
                 pos += sizeof (int);
 
-                res[counter++] = C_push_not_reg;
-                res[counter++] = sum;
+                Move_Si_Not_Reg (res, &counter);
+
+                res[counter++] = sum % 256;
+                sum /= 256;
+                res[counter++] = sum % 256;
+
+                Push_Reg (res, &counter, E_si);
 
                 break;
-                }, 1, 2)
+                }, 1)
 
 DEF_CMD(POP, 2,
                 {
+                offsets_arr[pos] = counter;
+
                 pos++;
 
                 int what_reg = -1;
@@ -67,62 +76,52 @@ DEF_CMD(POP, 2,
 //                * (int *) (res + counter) = sum;
 
                 break;
-                }, 1, 2)
+                }, 1)
 
 DEF_CMD(ADD, 3,
                 {
-                REALLOC_RES
-
-                Move_Si_Ax (res, &counter);
-                Move_Di_Bx (res, &counter);
-
-                Pop_Reg (res, &counter, E_ax);
-                Pop_Reg (res, &counter, E_bx);
+                offsets_arr[pos] = counter;
 
                 REALLOC_RES
 
-                Add_Ax_Bx  (res, &counter);
+                Pop_Reg (res, &counter, E_si);
+                Pop_Reg (res, &counter, E_di);
 
-                Push_Reg   (res, &counter, E_ax);
+                Add_Si_Di  (res, &counter);
+
+                Push_Reg   (res, &counter, E_si);
 
                 REALLOC_RES
-
-                Move_Ax_Si (res, &counter);
-                Move_Bx_Di (res, &counter);
 
                 pos++;
 
                 break;
-                }, 0, 21)
+                }, 0)
 
 DEF_CMD(SUB, 4,
                 {
-                REALLOC_RES
-
-                Move_Si_Ax (res, &counter);
-                Move_Di_Bx (res, &counter);
-
-                Pop_Reg (res, &counter, E_ax);
-                Pop_Reg (res, &counter, E_bx);
+                offsets_arr[pos] = counter;
 
                 REALLOC_RES
 
-                Sub_Ax_Bx  (res, &counter);
+                Pop_Reg (res, &counter, E_si);
+                Pop_Reg (res, &counter, E_di);
 
-                Push_Reg   (res, &counter, E_ax);
+                Sub_Si_Di  (res, &counter);
+
+                Push_Reg   (res, &counter, E_si);
 
                 REALLOC_RES
-
-                Move_Ax_Si (res, &counter);
-                Move_Bx_Di (res, &counter);
 
                 pos++;
 
                 break;
-                }, 0, 21)
+                }, 0)
 
 DEF_CMD(MUL, 5,
                 {
+                offsets_arr[pos] = counter;
+
                 REALLOC_RES
 
                 Move_Si_Ax (res, &counter);
@@ -133,9 +132,9 @@ DEF_CMD(MUL, 5,
 
                 REALLOC_RES
 
-                Mul_Bx     (res, &counter);
+                Mul_Bx   (res, &counter);
 
-                Push_Reg   (res, &counter, E_ax);
+                Push_Reg (res, &counter, E_ax);
 
                 REALLOC_RES
 
@@ -145,10 +144,12 @@ DEF_CMD(MUL, 5,
                 pos++;
 
                 break;
-                }, 0, 21)
+                }, 0)
 
 DEF_CMD(DIV, 6,
                 {
+                offsets_arr[pos] = counter;
+
                 REALLOC_RES
 
                 Move_Si_Ax (res, &counter);
@@ -179,11 +180,13 @@ DEF_CMD(DIV, 6,
                 pos++;
 
                 break;
-                }, 0, 27)
+                }, 0)
 
 
 DEF_CMD(JMP, 17,
                 {
+                offsets_arr[pos] = counter;
+
                 REALLOC_RES
                 pos++;
 
@@ -191,21 +194,19 @@ DEF_CMD(JMP, 17,
 
                 res[counter++] = C_jmp;
 
-                int offset = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
-
-                res[counter++] = offset % 256;
-                offset /= 256;
-                res[counter++] = offset % 256;
-                res[counter++] = 0;
-                res[counter++] = 0;
+                for (int i = 0; i < 4; i++)   //}
+                    res[counter++] = 0;       //} TBA
 
                 pos += sizeof (int);
 
                 break;
-                }, 1, 5)
+                }, 1)
+
 
 DEF_CMD(JA, 11,
                 {
+                offsets_arr[pos] = counter;
+
                 REALLOC_RES
                 pos++;
 
@@ -216,26 +217,24 @@ DEF_CMD(JA, 11,
 
                 Cmp_Si_Di (res, &counter);
 
+                res[counter++] = C_jbe;
+                res[counter++] = 0x05;
+
                 REALLOC_RES
 
-                res[counter++] = 0x77;
+                res[counter++] = C_jmp;
+                for (int i = 0; i < 4; i++)   //}
+                    res[counter++] = 0;       //} TBA
 
-                int offset = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
-
-                res[counter++] = offset % 256;
-                offset /= 256;
-                res[counter++] = offset % 256;
-                res[counter++] = 0;
-                res[counter++] = 0;
-
-                counter++;
                 pos += sizeof (int);
 
                 break;
-                }, 1, 12)
+                }, 1)
 
 DEF_CMD(JAE, 12,
                 {
+                offsets_arr[pos] = counter;
+
                 REALLOC_RES
                 pos++;
 
@@ -246,20 +245,24 @@ DEF_CMD(JAE, 12,
 
                 Cmp_Si_Di (res, &counter);
 
+                res[counter++] = C_ja;
+                res[counter++] = 0x05;
+
                 REALLOC_RES
 
-                res[counter++] = C_jae[0];
-                res[counter++] = C_jae[1];
-                * (int *) (res + counter) = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
+                res[counter++] = C_jmp;
+                for (int i = 0; i < 4; i++)   //}
+                    res[counter++] = 0;       //} TBA
 
-                counter++;
                 pos += sizeof (int);
 
                 break;
-                }, 1, 9)
+                }, 1)
 
 DEF_CMD(JB, 13,
                 {
+                offsets_arr[pos] = counter;
+
                 REALLOC_RES
                 pos++;
 
@@ -270,18 +273,24 @@ DEF_CMD(JB, 13,
 
                 Cmp_Si_Di (res, &counter);
 
-                res[counter++] = C_jb[0];
-                res[counter++] = C_jb[1];
-                * (int *) (res + counter) = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
+                res[counter++] = C_jae;
+                res[counter++] = 0x05;
 
-                counter++;
+                REALLOC_RES
+
+                res[counter++] = C_jmp;
+                for (int i = 0; i < 4; i++)   //}
+                    res[counter++] = 0;       //} TBA
+
                 pos += sizeof (int);
 
                 break;
-                }, 1, 9)
+                }, 1)
 
 DEF_CMD(JBE, 14,
                 {
+                offsets_arr[pos] = counter;
+
                 REALLOC_RES
                 pos++;
 
@@ -292,18 +301,24 @@ DEF_CMD(JBE, 14,
 
                 Cmp_Si_Di (res, &counter);
 
-                res[counter++] = C_jbe[0];
-                res[counter++] = C_jbe[1];
-                * (int *) (res + counter) = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
+                res[counter++] = C_ja;
+                res[counter++] = 0x05;
 
-                counter++;
+                REALLOC_RES
+
+                res[counter++] = C_jmp;
+                for (int i = 0; i < 4; i++)   //}
+                    res[counter++] = 0;       //} TBA
+
                 pos += sizeof (int);
 
                 break;
-                }, 1, 9)
+                }, 1)
 
 DEF_CMD(JE, 15,
                 {
+                offsets_arr[pos] = counter;
+
                 REALLOC_RES
                 pos++;
 
@@ -314,18 +329,24 @@ DEF_CMD(JE, 15,
 
                 Cmp_Si_Di (res, &counter);
 
-                res[counter++] = C_je[0];
-                res[counter++] = C_je[1];
-                * (int *) (res + counter) = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
+                res[counter++] = C_jne;
+                res[counter++] = 0x05;
 
-                counter++;
+                REALLOC_RES
+
+                res[counter++] = C_jmp;
+                for (int i = 0; i < 4; i++)   //}
+                    res[counter++] = 0;       //} TBA
+
                 pos += sizeof (int);
 
                 break;
-                }, 1, 9)
+                }, 1)
 
 DEF_CMD(JNE, 16,
                 {
+                offsets_arr[pos] = counter;
+
                 REALLOC_RES
                 pos++;
 
@@ -336,26 +357,25 @@ DEF_CMD(JNE, 16,
 
                 Cmp_Si_Di (res, &counter);
 
+                res[counter++] = C_je;
+                res[counter++] = 0x05;
+
                 REALLOC_RES
 
-                res[counter++] = 0x75;
-
-                int offset = offsets_arr[sum] - offsets_arr[pos - 1] - 2;
-
-                res[counter++] = offset % 256;
-                offset /= 256;
-                res[counter++] = offset % 256;
-                res[counter++] = 0;
-                res[counter++] = 0;
+                res[counter++] = C_jmp;
+                for (int i = 0; i < 4; i++)   //}
+                    res[counter++] = 0;       //} TBA
 
                 pos += sizeof (int);
 
                 break;
-                }, 1, 12)
+                }, 1)
 
 
 DEF_CMD(OUT, 22,
                 {
+//                offsets_arr[pos] = counter;
+
                 REALLOC_RES
                 pos++;
 
@@ -381,12 +401,14 @@ DEF_CMD(OUT, 22,
 //                res[pos_offset + 2] = ' ';
 
                 break;
-                }, 0, 10)
+                }, 0)
 
 
 
 DEF_CMD(PRT, 72,
                 {
+//                offsets_arr[pos] = counter;
+
                 REALLOC_RES
                 pos++;
 
@@ -451,11 +473,13 @@ DEF_CMD(PRT, 72,
 //                pos_offset += res[pos_offset] + 1;
 
                 break;
-                }, 1, 24)
+                }, 1)
 
 
 DEF_CMD(END, 0,
                 {
+                offsets_arr[pos] = counter;
+
                 REALLOC_RES
 
                 for (int i = 0; i < 6; i++)
@@ -471,4 +495,4 @@ DEF_CMD(END, 0,
                 }
 
                 pos += 1;
-                }, 0, 12)
+                }, 0)
