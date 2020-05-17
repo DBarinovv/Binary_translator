@@ -397,7 +397,7 @@ DEF_CMD(OUT, 22,
 //                res[counter++] = 0; //| TBA
 //                res[counter++] = 0; //}
 
-                Move_Ax_Si (res, &counter);
+//                Move_Ax_Si (res, &counter);
 
                 break;
                 }, 0)
