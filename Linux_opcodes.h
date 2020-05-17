@@ -31,11 +31,11 @@ const unsigned char C_xor_ah_ah[2] = {0x30, 0xe4};
 const unsigned char C_div_bx[3]    = {0x66, 0xf7, 0xf3};
 const unsigned char C_mul_bx[3]    = {0x66, 0xf7, 0xe3};
 
-const unsigned char C_mov_offset_si[4]  = {0x66, 0x89, 0x34, 0x25};
-
-const unsigned char C_mov_rdx_offset[4] = {0x48, 0x8b, 0x14, 0x25};
+const unsigned char C_mov_offset_al[3]  = {0x88, 0x04, 0x25};
 
 const unsigned char C_mov_rdi_not_reg = 0xbf;
+
+const unsigned char C_mov_rdx_not_reg = 0xba;
 
 const unsigned char C_mov_rax_not_reg = 0xb8;
 
@@ -55,6 +55,8 @@ const unsigned char C_jae  = 0x73;  //| for near jumps
 const unsigned char C_jne  = 0x75;  //|
 const unsigned char C_jb   = 0x72;  //|
 const unsigned char C_jbe  = 0x76;  //}
+
+const unsigned char C_syscall[2]  = {0x0f, 0x05};
 
 enum reg_offsets {
                     E_ax = 0,

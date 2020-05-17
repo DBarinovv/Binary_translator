@@ -46,10 +46,13 @@ void Make_Default_ELF_Header (elf::Elf64_Ehdr *elf_header);
 
 void Make_Default_Program_Header (elf::Elf64_Phdr *program_header);
 
-void Make_Res_File (const elf::Elf64_Ehdr *elf_header, elf::Elf64_Phdr *program_header,
-                    unsigned char *res, const int counter, FILE *fout);
+void Make_Res_File (const elf::Elf64_Ehdr *elf_header, elf::Elf64_Phdr *program_header, unsigned char *res,
+                    const char * strings_arr, const int strings_arr_pos, const int counter, FILE *fout);
 
 void Make_Right_Jumps (const char *buf, unsigned char *res, const int *offsets_arr, const int sz_file);
+
+void Make_Right_Print (const char *buf, unsigned char *res, const int *offsets_arr,
+                       const char *strings_arr, const int sz_file, const int counter);
 
 //-----------------------------------------------------------------------------
 
@@ -82,6 +85,8 @@ inline void Add_Si_Di  (unsigned char *res, int *counter);
 inline void Sub_Si_Di  (unsigned char *res, int *counter);
 
 inline void Move_Si_Not_Reg (unsigned char *res, int *counter);
+
+inline void Syscall    (unsigned char *res, int *counter);
 
 //=============================================================================
 
@@ -120,10 +125,12 @@ int main ()
     }
 
 
-    int *offsets_arr = (int *) calloc (sz_file + 1, sizeof (int));
+    int *offsets_arr  = (int *)  calloc (sz_file + 1, sizeof (int));
+    char *strings_arr = (char *) calloc (sz_file + 1, sizeof (char));
 
     unsigned char *res = (unsigned char *) calloc (sz_file * 10, sizeof (unsigned char));
 
+    int strings_arr_pos = 0;
     int counter = 0;
     int pos = 0;
     int sz_res = sz_file;
@@ -141,9 +148,22 @@ int main ()
     #undef DEF_CMD
     #undef REALLOC_RES
 
+    res[7]  = 0;
+    res[15] = 2;
+    res[23] = 4;
+
     Make_Right_Jumps (buf, res, offsets_arr, sz_file);
 
-    Make_Res_File (&elf_header, &program_header, res, counter, fout);
+    Make_Right_Print (buf, res, offsets_arr, strings_arr, sz_file, counter);
+
+
+    for (int i = 0; i < counter + 1; i++)
+    {
+        if (i % 20 == 0) printf ("\n");
+        printf ("%0.2x ", res[i]);
+    }
+
+    Make_Res_File (&elf_header, &program_header, res, strings_arr, strings_arr_pos, counter, fout);
 
     return 0;
 }
@@ -198,15 +218,17 @@ void Make_Default_Program_Header (elf::Elf64_Phdr *program_header)
 
 //-----------------------------------------------------------------------------
 
-void Make_Res_File (const elf::Elf64_Ehdr *elf_header, elf::Elf64_Phdr *program_header, unsigned char *res, const int counter, FILE *fout)
+void Make_Res_File (const elf::Elf64_Ehdr *elf_header, elf::Elf64_Phdr *program_header, unsigned char *res,
+                    const char * strings_arr, const int strings_arr_pos, const int counter, FILE *fout)
 {
-    program_header->p_filesz = counter + 1;
-    program_header->p_memsz  = counter + 1;
+    program_header->p_filesz = 2 * counter;
+    program_header->p_memsz  = 2 * counter;
 
     fwrite (elf_header,     sizeof (elf::Elf64_Ehdr), 1, fout);
     fwrite (program_header, sizeof (elf::Elf64_Phdr), 1, fout);
 
     fwrite (res, counter, sizeof (unsigned char), fout);
+    fwrite (strings_arr, strings_arr_pos, sizeof (char), fout);
 }
 
 //-----------------------------------------------------------------------------
@@ -218,24 +240,52 @@ void Make_Right_Jumps (const char *buf, unsigned char *res, const int *offsets_a
     {
         if (11 <= buf[ind] && buf[ind] == 16) // ja, je, jae, jbe, jne, je
         {
-            printf ("First = [%x] - Second = [%x]  =  [%x]\n", offsets_arr[(* (int *) (buf + ind + 1))],  offsets_arr[ind], offsets_arr[(* (int *) (buf + ind + 1))] - offsets_arr[ind] - 5);
             int dif = offsets_arr[(* (int *) (buf + ind + 1))] - offsets_arr[ind] - 14;
 
-            for (int i = 0; i < 4; i++)
-            {
-                res[offsets_arr[ind] + i + 10] = dif % 256;
-                dif /= 256;
-            }
+            * (int *) (res + offsets_arr[ind] + 10) = dif;
         }
         else if (buf[ind] == 17) // jmp
         {
             int dif = offsets_arr[(* (int *) (buf + ind + 1))] - offsets_arr[ind] - 5; // 5 = len (jump)
 
-            for (int i = 0; i < 4; i++)
-            {
-                res[offsets_arr[ind] + i + 1] = dif % 256;
-                dif /= 256;
-            }
+            * (int *) (res + offsets_arr[ind] + 1) = dif;
+        }
+
+        ind++;
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+void Make_Right_Print (const char *buf, unsigned char *res, const int *offsets_arr,
+                       const char *strings_arr, const int sz_file, const int counter)
+{
+    int ind = 0;
+    int cnt = 0;
+    unsigned char len = 0;
+
+    while (ind < sz_file)
+    {
+        if (buf[ind] == CMD_OUT)
+        {
+//            int global_offset = 0x400078 + counter + 1 + cnt * 20;
+//
+//            * (int *) (res + offsets_arr[ind] + 10) = global_offset;
+//
+//            len += 2;
+        }
+        else if (buf[ind] == CMD_PRT)
+        {
+            int global_offset = 0x400078 + counter + 1 + cnt * 20;
+
+            * (int *) (res + offsets_arr[ind] + 12) = global_offset;
+
+            len += strlen (buf + ind + 1) - 1;
+
+            * (int *) (res + offsets_arr[ind] + 21) = len - 1;
+
+            cnt++;
+            len = 0;
         }
 
         ind++;
@@ -371,6 +421,14 @@ inline void Sub_Si_Di (unsigned char *res, int *counter)
     res[(*counter)++] = C_sub_si_di[0];              //}
     res[(*counter)++] = C_sub_si_di[1];              //| sub si, di
     res[(*counter)++] = C_sub_si_di[2];              //}
+}
+
+//-----------------------------------------------------------------------------
+
+inline void Syscall (unsigned char *res, int *counter)
+{
+    res[(*counter)++] = C_syscall[0];                //}
+    res[(*counter)++] = C_syscall[1];                //} syscall
 }
 
 
