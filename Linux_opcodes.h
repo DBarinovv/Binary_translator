@@ -19,11 +19,8 @@ const unsigned char C_add_ax_bx[3] = {0x66, 0x01, 0xd8};
 const unsigned char C_sub_ax_bx[3] = {0x66, 0x29, 0xd8};
 
 const unsigned char C_mov_si_ax[3] = {0x66, 0x89, 0xc6};
-
 const unsigned char C_mov_di_bx[3] = {0x66, 0x89, 0xdf};
-
 const unsigned char C_mov_ax_si[3] = {0x66, 0x89, 0xf0};
-
 const unsigned char C_mov_bx_di[3] = {0x66, 0x89, 0xfb};
 
 const unsigned char C_xor_ah_ah[2] = {0x30, 0xe4};
@@ -34,9 +31,7 @@ const unsigned char C_mul_bx[3]    = {0x66, 0xf7, 0xe3};
 const unsigned char C_mov_offset_al[3]  = {0x88, 0x04, 0x25};
 
 const unsigned char C_mov_rdi_not_reg = 0xbf;
-
 const unsigned char C_mov_rdx_not_reg = 0xba;
-
 const unsigned char C_mov_rax_not_reg = 0xb8;
 
 const unsigned char C_mov_rsi_offset[2] = {0x48, 0xbe};

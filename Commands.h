@@ -72,9 +72,6 @@ DEF_CMD(POP, 2,
 
                 pos += sizeof (int);
 
-//                res[counter++] = C_pop_not_reg;
-//                * (int *) (res + counter) = sum;
-
                 break;
                 }, 1)
 
@@ -379,25 +376,22 @@ DEF_CMD(OUT, 22,
                 REALLOC_RES
                 pos++;
 
-//                strings_arr[strings_arr_pos++] = '0';
-//                strings_arr[strings_arr_pos++] = ' ';
-//
-//                Move_Si_Ax (res, &counter);
-//
-//                Pop_Reg    (res, &counter, E_ax);
-//
-//                Xor_Ah_Ah  (res, &counter);
-//
-//                res[counter++] = C_mov_offset_al[0];
-//                res[counter++] = C_mov_offset_al[1];
-//                res[counter++] = C_mov_offset_al[2];
-//
-//                res[counter++] = 0; //}
-//                res[counter++] = 0; //|
-//                res[counter++] = 0; //| TBA
-//                res[counter++] = 0; //}
+                strings_arr[strings_arr_pos++] = '0';
 
-//                Move_Ax_Si (res, &counter);
+                Move_Si_Ax (res, &counter);
+
+                Pop_Reg    (res, &counter, E_ax);
+
+                Xor_Ah_Ah  (res, &counter);
+
+                res[counter++] = C_mov_offset_al[0];
+                res[counter++] = C_mov_offset_al[1];
+                res[counter++] = C_mov_offset_al[2];
+
+                for (int i = 0; i < 4; i++)   //}
+                    res[counter++] = 0;       //} TBA
+
+                Move_Ax_Si (res, &counter);
 
                 break;
                 }, 0)
@@ -422,21 +416,16 @@ DEF_CMD(PRT, 72,
 
 
                 res[counter++] = C_mov_rax_not_reg;
-                res[counter++] = 1;
-                res[counter++] = 0;
-                res[counter++] = 0;
-                res[counter++] = 0;
+                * (int *) (res + counter) = 1;
+                counter += sizeof (int);
 
                 res[counter++] = C_mov_rdi_not_reg;
-                res[counter++] = 1;
-                res[counter++] = 0;
-                res[counter++] = 0;
-                res[counter++] = 0;
+                * (int *) (res + counter) = 1;
+                counter += sizeof (int);;
 
                 REALLOC_RES
 
-                res[counter++] = C_mov_rsi_offset[0];
-                res[counter++] = C_mov_rsi_offset[1];
+                Move_Rsi_Offset (res, &counter);
 
                 for (int i = 0; i < 8; i++)
                     res[counter++] = 0;     // TBA

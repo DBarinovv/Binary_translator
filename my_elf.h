@@ -62,3 +62,37 @@ struct Elf64_Phdr
 };
 
 }
+
+//=============================================================================
+
+//Name           Offset         NumValue            Value
+//EI_MAG:        0x00000000     0x7F454C46          ELF
+//EI_CLASS       0x00000004     0x02                64 BIT
+//EI_DATA        0x00000005     0x01                DATA2LSB (Little-Endian)
+//EI_VERSION     0x00000006     0x01                EV_CURRENT
+//EI_OSABI       0x00000007     0x00                UNIX System V ABI
+//EI_OSABIVER    0x00000008     0x00
+//E_TYPE         0x00000010     0x0002              ET_EXEC (Executable file)
+//E_MACHINE      0x00000012     0x003E              EM_X86_64 (AMD x86- 64 architecture)
+//E_VERSION      0x00000014     0x00000001          EV_CURRENT
+//E_ENTRY        0x00000018     0x0000000000401000
+//E_PHOFF        0x00000020     0x0000000000000040
+//E_SHOFF        0x00000028     0x0000000000001120
+//E_FLAGS        0x00000030     0x00000000
+//E_EHSIZE       0x00000034     0x0040
+//E_PHENTSIZE    0x00000036     0x0038
+//E_PHNUM        0x00000038     0x0002
+//E_SHENTSIZE    0x0000003A     0x0040
+//E_SHNUM        0x0000003C     0x0005
+//E_SHSTRNDX     0x0000003E     0x0004
+
+//-----------------------------------------------------------------------------
+
+//P_TYPE         0x00000040     0x00000001          PT_LOAD (Loadable segment)
+//P_FLAGS        0x00000044     0x00000004          Read
+//P_OFFSET       0x00000048     0x0000000000000000
+//P_VADDR        0x00000050     0x0000000000400000
+//P_PADDR        0x00000058     0x0000000000400000
+//P_FILESZ       0x00000060     0x00000000000000B0
+//P_MEMSZ        0x00000068     0x00000000000000B0
+//P_ALIGN        0x00000070     0x0000000000001000
