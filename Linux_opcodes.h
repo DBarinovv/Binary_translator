@@ -25,6 +25,10 @@ const unsigned char C_mov_bx_di[3] = {0x66, 0x89, 0xfb};
 
 const unsigned char C_xor_ah_ah[2] = {0x30, 0xe4};
 
+const unsigned char C_idiv_bl[2]   = {0xf6, 0xfb};
+const unsigned char C_imul_bl[2]   = {0xf6, 0xeb};
+
+const unsigned char C_idiv_bx[3]   = {0x66, 0xf7, 0xfb};
 const unsigned char C_div_bx[3]    = {0x66, 0xf7, 0xf3};
 const unsigned char C_mul_bx[3]    = {0x66, 0xf7, 0xe3};
 
@@ -50,6 +54,8 @@ const unsigned char C_jae  = 0x73;  //| for near jumps
 const unsigned char C_jne  = 0x75;  //|
 const unsigned char C_jb   = 0x72;  //|
 const unsigned char C_jbe  = 0x76;  //}
+
+const unsigned char C_call = 0xe8;
 
 const unsigned char C_syscall[2]  = {0x0f, 0x05};
 

@@ -80,6 +80,10 @@ inline void Sub_Ax_Bx  (unsigned char *res, int *counter);
 
 inline void Mul_Bx     (unsigned char *res, int *counter);
 
+inline void Idiv_Bl    (unsigned char *res, int *counter);
+
+inline void Imul_Bl    (unsigned char *res, int *counter);
+
 inline void Idiv_Bx    (unsigned char *res, int *counter);
 
 inline void Div_Bx     (unsigned char *res, int *counter);
@@ -103,7 +107,7 @@ inline void Syscall    (unsigned char *res, int *counter);
 int main ()
 {
     char *name_of_fin  = "output.txt";
-    char *name_of_fout = "Elf_file";
+    char *name_of_fout = "Elf_file_quadratic";
 
     int sz_file = Find_Size_Of_File (name_of_fin);
 
@@ -159,9 +163,9 @@ int main ()
     #undef REALLOC_RES
 
 
-    res[7]  = 0;  // a }
-    res[15] = 2;  // b | ax**2 + bx + c = 0 (for tests)
-    res[23] = 6;  // c }
+    res[7]  = 1;  // a }
+    res[15] = 1;  // b | ax**2 + bx + c = 0 (for tests)
+    res[23] = -6; // c }
 
     Make_Right_Jumps (buf, res, offsets_arr, sz_file);
 
@@ -243,11 +247,15 @@ void Make_Res_File (const elf::Elf64_Ehdr *elf_header, elf::Elf64_Phdr *program_
     unsigned char jump_to_start[0x100 - 0x78] = {C_jmp};
     * (int *) (jump_to_start + 1) = 0x400300 - 0x400078 - 5;
 
+    jump_to_start[0x80 - 0x78 + 0x13] = ' '; // for OUT
+
     fwrite (jump_to_start, 0x100 - 0x78, 1, fout);
 
 
     unsigned char helper[0x100] = {
                                   #include "Out_number_proc.h"
+                                  ,
+                                  #include "Sqrt_proc.h"
                                   };
 
     fwrite (helper, 0x100, 1, fout);
@@ -270,7 +278,7 @@ void Make_Right_Jumps (const char *buf, unsigned char *res, const int *offsets_a
     int ind = 0;
     while (ind < sz_file)
     {
-        if (11 <= buf[ind] && buf[ind] == 16) // ja, je, jae, jbe, jne, je
+        if (11 <= buf[ind] && buf[ind] <= 16) // ja, je, jae, jbe, jne, je
         {
             int dif = offsets_arr[(* (int *) (buf + ind + 1))] - offsets_arr[ind] - 14;
 
@@ -316,6 +324,10 @@ void Make_Right_Print (const char *buf, unsigned char *res, const int *offsets_a
             * (int *) (res + offsets_arr[ind] + 21) = strlen (buf + ind + 1);
 
             cnt++;
+        }
+        else if (buf[ind] == CMD_SQRT)
+        {
+            * (int *) (res + offsets_arr[ind] + 9) = 0x171 - 0x300 - offsets_arr[ind] - 10;
         }
 
         ind++;
@@ -421,6 +433,26 @@ inline void Mul_Bx (unsigned char *res, int *counter)
 
 //-----------------------------------------------------------------------------
 
+inline void Idiv_Bl (unsigned char *res, int *counter)
+{
+    assert (res);
+
+    res[(*counter)++] = C_idiv_bl[0];                //}
+    res[(*counter)++] = C_idiv_bl[1];                //} idiv bl
+}
+
+//-----------------------------------------------------------------------------
+
+inline void Imul_Bl (unsigned char *res, int *counter)
+{
+    assert (res);
+
+    res[(*counter)++] = C_imul_bl[0];                //}
+    res[(*counter)++] = C_imul_bl[1];                //} imul bl
+}
+
+//-----------------------------------------------------------------------------
+
 inline void Idiv_Bx (unsigned char *res, int *counter)
 {
     assert (res);
@@ -513,38 +545,3 @@ inline void Syscall (unsigned char *res, int *counter)
     res[(*counter)++] = C_syscall[0];                //}
     res[(*counter)++] = C_syscall[1];                //} syscall
 }
-
-
-/*
-55
-48 89 e5
-50
-57
-56
-52
-48 be 00
-20 40 00 00 00 00 00
-48 83 c6 13
-b1 0a
-ba 00 00 00 00
-f6 f1
-80 fc 09
-80  c4 30
-88 26
-48 ff ce
-48 ff c2
-30 e4
-66 83 f8 00
-77 e8
-b8 01 00 00 00
-bf 01 00 00 00
-48 ff c6
-0f 05
-5a
-5e
-5f
-58
-48 89 ec
-5d
-c3
-*/

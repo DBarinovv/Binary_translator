@@ -6,7 +6,7 @@
 // Out_number_proc.h
 
 // This proc take ax - number and output it
-// Size of this code is 0x70
+// Size of this code is 0x74
 
 
 0x55,                                       //  push rbp
@@ -19,10 +19,10 @@
                                             //
 0x48, 0xbe, 0x80, 0x00, 0x40, 0x00,         // }mov rsi, 0x400080 (our free buf)
 0x00, 0x00, 0x00, 0x00,                     // }
-0x48, 0x83, 0xc6, 0x13,                     //  add rsi, 0x13   (0x13 - max length)
+0x48, 0x83, 0xc6, 0x12,                     //  add rsi, 0x12   (0x12- max length)
                                             //
 0xb1, 0x0a,                                 //  mov cl, 0x0a
-0xba, 0x00, 0x00, 0x00, 0x00,               //  mov rdx, 0
+0xba, 0x01, 0x00, 0x00, 0x00,               //  mov rdx, 1
                                             //
 0x66, 0x3d, 0x80, 0x00,                     //  cmp ax, 0x80
 0x72, 0x11,                                 //  jb =============}

@@ -129,7 +129,7 @@ DEF_CMD(MUL, 5,
 
                 REALLOC_RES
 
-                Mul_Bx   (res, &counter);
+                Imul_Bl  (res, &counter);
 
                 Push_Reg (res, &counter, E_ax);
 
@@ -159,7 +159,7 @@ DEF_CMD(DIV, 6,
 
                 Push_Reg   (res, &counter, E_dx);
 
-                Idiv_Bx     (res, &counter);
+                Idiv_Bl     (res, &counter);
 
                 Pop_Reg    (res, &counter, E_dx);
 
@@ -180,6 +180,57 @@ DEF_CMD(DIV, 6,
                 }, 0)
 
 
+
+DEF_CMD(SQRT, 7,
+                {
+                offsets_arr[pos] = counter;
+
+                REALLOC_RES
+
+                Move_Si_Ax (res, &counter);
+                Move_Di_Bx (res, &counter);
+
+                Pop_Reg    (res, &counter, E_bx);
+
+                res[counter++] = C_call;
+
+                for (int i = 0; i < 4; i++)   //}
+                    res[counter++] = 0;       //} TBA
+
+
+                Push_Reg   (res, &counter, E_ax);
+
+
+                Move_Ax_Si (res, &counter);
+                Move_Bx_Di (res, &counter);
+
+                pos++;
+
+                break;
+                }, 0)
+
+DEF_CMD(CALL, 8,
+                {
+//                counter++;
+//
+//                Stack_Push (stk_for_func, counter + sizeof (int));
+//
+//                int sum = * (int*) (buf + counter);
+//                counter = sum;
+////                counter = buf[counter];
+//
+                break;
+                }, 1)
+
+DEF_CMD(RET, 9,
+                {
+//                Stack_Pop (stk_for_func, &counter);
+
+                break;
+                }, 0)
+
+
+
 DEF_CMD(JMP, 17,
                 {
                 offsets_arr[pos] = counter;
@@ -187,7 +238,7 @@ DEF_CMD(JMP, 17,
                 REALLOC_RES
                 pos++;
 
-                int sum = * (int*) (buf + pos);
+                int sum = * (int *) (buf + pos);
 
                 res[counter++] = C_jmp;
 
@@ -207,7 +258,7 @@ DEF_CMD(JA, 11,
                 REALLOC_RES
                 pos++;
 
-                int sum = * (int*) (buf + pos);
+                int sum = * (int *) (buf + pos);
 
                 Pop_Reg (res, &counter, E_si);
                 Pop_Reg (res, &counter, E_di);
@@ -235,14 +286,14 @@ DEF_CMD(JAE, 12,
                 REALLOC_RES
                 pos++;
 
-                int sum = * (int*) (buf + pos);
+                int sum = * (int *) (buf + pos);
 
                 Pop_Reg (res, &counter, E_si);
                 Pop_Reg (res, &counter, E_di);
 
                 Cmp_Si_Di (res, &counter);
 
-                res[counter++] = C_ja;
+                res[counter++] = C_jb;
                 res[counter++] = 0x05;
 
                 REALLOC_RES
@@ -263,7 +314,7 @@ DEF_CMD(JB, 13,
                 REALLOC_RES
                 pos++;
 
-                int sum = * (int*) (buf + pos);
+                int sum = * (int *) (buf + pos);
 
                 Pop_Reg (res, &counter, E_si);
                 Pop_Reg (res, &counter, E_di);
@@ -291,7 +342,7 @@ DEF_CMD(JBE, 14,
                 REALLOC_RES
                 pos++;
 
-                int sum = * (int*) (buf + pos);
+                int sum = * (int *) (buf + pos);
 
                 Pop_Reg (res, &counter, E_si);
                 Pop_Reg (res, &counter, E_di);
@@ -319,7 +370,7 @@ DEF_CMD(JE, 15,
                 REALLOC_RES
                 pos++;
 
-                int sum = * (int*) (buf + pos);
+                int sum = * (int *) (buf + pos);
 
                 Pop_Reg (res, &counter, E_si);
                 Pop_Reg (res, &counter, E_di);
@@ -347,7 +398,7 @@ DEF_CMD(JNE, 16,
                 REALLOC_RES
                 pos++;
 
-                int sum = * (int*) (buf + pos);
+                int sum = * (int *) (buf + pos);
 
                 Pop_Reg (res, &counter, E_si);
                 Pop_Reg (res, &counter, E_di);
