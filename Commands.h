@@ -81,8 +81,8 @@ DEF_CMD(ADD, 3,
 
                 REALLOC_RES
 
-                Pop_Reg (res, &counter, E_si);
                 Pop_Reg (res, &counter, E_di);
+                Pop_Reg (res, &counter, E_si);
 
                 Add_Si_Di  (res, &counter);
 
@@ -101,8 +101,8 @@ DEF_CMD(SUB, 4,
 
                 REALLOC_RES
 
-                Pop_Reg (res, &counter, E_si);
                 Pop_Reg (res, &counter, E_di);
+                Pop_Reg (res, &counter, E_si);
 
                 Sub_Si_Di  (res, &counter);
 
@@ -152,14 +152,14 @@ DEF_CMD(DIV, 6,
                 Move_Si_Ax (res, &counter);
                 Move_Di_Bx (res, &counter);
 
-                Pop_Reg (res, &counter, E_ax);
                 Pop_Reg (res, &counter, E_bx);
+                Pop_Reg (res, &counter, E_ax);
 
                 REALLOC_RES
 
                 Push_Reg   (res, &counter, E_dx);
 
-                Div_Bx     (res, &counter);
+                Idiv_Bx     (res, &counter);
 
                 Pop_Reg    (res, &counter, E_dx);
 
@@ -376,17 +376,11 @@ DEF_CMD(OUT, 22,
                 REALLOC_RES
                 pos++;
 
-                strings_arr[strings_arr_pos++] = '0';
-
                 Move_Si_Ax (res, &counter);
 
                 Pop_Reg    (res, &counter, E_ax);
 
-                Xor_Ah_Ah  (res, &counter);
-
-                res[counter++] = C_mov_offset_al[0];
-                res[counter++] = C_mov_offset_al[1];
-                res[counter++] = C_mov_offset_al[2];
+                res[counter++] = C_call;
 
                 for (int i = 0; i < 4; i++)   //}
                     res[counter++] = 0;       //} TBA
@@ -410,7 +404,8 @@ DEF_CMD(PRT, 72,
 
                 pos += (len);
 
-                memmove (strings_arr + strings_arr_pos, helper, len);
+                *(strings_arr + strings_arr_pos) = '\n';
+                memmove (strings_arr + strings_arr_pos + 1, helper, len);
 
                 strings_arr_pos += 20 - strings_arr_pos % 20;
 

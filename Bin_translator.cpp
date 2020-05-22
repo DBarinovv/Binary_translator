@@ -22,7 +22,7 @@
 const elf::Elf64_Half	C_my_e_type      = 0x0002;
 const elf::Elf64_Half	C_my_e_machine   = 0x003E;
 const elf::Elf64_Word	C_my_e_version   = 0x00000001;
-const elf::Elf64_Addr	C_my_e_entry     = 0x0000000000400078;
+const elf::Elf64_Addr	C_my_e_entry     = 0x0000000000400300;
 const elf::Elf64_Off	C_my_e_phoff     = 0x0000000000000040;
 const elf::Elf64_Off	C_my_e_shoff     = 0x00000000;
 const elf::Elf64_Word	C_my_e_flags     = 0x00000000;
@@ -35,7 +35,7 @@ const elf::Elf64_Half	C_my_e_shstrndx  = 0x0000; // because without any sections
 
 
 const elf::Elf64_Word	C_my_p_type   = 0x00000001;
-const elf::Elf64_Word	C_my_p_flags  = 0x00000005;
+const elf::Elf64_Word	C_my_p_flags  = 0x00000007;
 const elf::Elf64_Off 	C_my_p_offset = 0x0000000000000000;
 const elf::Elf64_Addr	C_my_p_vaddr  = 0x0000000000400000;
 const elf::Elf64_Addr	C_my_p_paddr  = 0x0000000000400000;
@@ -79,6 +79,8 @@ inline void Add_Ax_Bx  (unsigned char *res, int *counter);
 inline void Sub_Ax_Bx  (unsigned char *res, int *counter);
 
 inline void Mul_Bx     (unsigned char *res, int *counter);
+
+inline void Idiv_Bx    (unsigned char *res, int *counter);
 
 inline void Div_Bx     (unsigned char *res, int *counter);
 
@@ -134,7 +136,7 @@ int main ()
 
 
     int *offsets_arr  = (int *)  calloc (sz_file + 1, sizeof (int));  assert (offsets_arr);
-    char *strings_arr = (char *) calloc (sz_file + 1, sizeof (char)); assert (strings_arr);
+    char *strings_arr = (char *) calloc (0x101,       sizeof (char)); assert (strings_arr);
 
     unsigned char *res = (unsigned char *) calloc (sz_file * 10, sizeof (unsigned char)); assert (res);
 
@@ -156,9 +158,10 @@ int main ()
     #undef DEF_CMD
     #undef REALLOC_RES
 
+
     res[7]  = 0;  // a }
-    res[15] = 1;  // b | ax**2 + bx + c = 0 (for tests)
-    res[23] = 0;  // c }
+    res[15] = 2;  // b | ax**2 + bx + c = 0 (for tests)
+    res[23] = 6;  // c }
 
     Make_Right_Jumps (buf, res, offsets_arr, sz_file);
 
@@ -229,14 +232,30 @@ void Make_Res_File (const elf::Elf64_Ehdr *elf_header, elf::Elf64_Phdr *program_
     assert (fout);
 
 
-    program_header->p_filesz = 2 * counter;
-    program_header->p_memsz  = 2 * counter;
+    program_header->p_filesz = 0x300 + counter + 1;
+    program_header->p_memsz  = 0x300 + counter + 1;
+
 
     fwrite (elf_header,     sizeof (elf::Elf64_Ehdr), 1, fout);
     fwrite (program_header, sizeof (elf::Elf64_Phdr), 1, fout);
 
+
+    unsigned char jump_to_start[0x100 - 0x78] = {C_jmp};
+    * (int *) (jump_to_start + 1) = 0x400300 - 0x400078 - 5;
+
+    fwrite (jump_to_start, 0x100 - 0x78, 1, fout);
+
+
+    unsigned char helper[0x100] = {
+                                  #include "Out_number_proc.h"
+                                  };
+
+    fwrite (helper, 0x100, 1, fout);
+
+
+    fwrite (strings_arr, 0x100, sizeof (char), fout);
+
     fwrite (res, counter, sizeof (unsigned char), fout);
-    fwrite (strings_arr, strings_arr_pos, sizeof (char), fout);
 }
 
 //-----------------------------------------------------------------------------
@@ -281,30 +300,22 @@ void Make_Right_Print (const char *buf, unsigned char *res, const int *offsets_a
 
     int ind = 0;
     int cnt = 0;
-    unsigned char len = 0;
 
     while (ind < sz_file)
     {
         if (buf[ind] == CMD_OUT)
         {
-            int global_offset = 0x400078 + counter + 1 + cnt * 20;
-
-            * (int *) (res + offsets_arr[ind] + 10) = global_offset;
-
-            len++;
+            * (int *) (res + offsets_arr[ind] + 6) = 0x100 - 0x300 - offsets_arr[ind] - 10;
         }
         else if (buf[ind] == CMD_PRT)
         {
-            int global_offset = 0x400078 + counter + 1 + cnt * 20;
+            int global_offset = 0x400200 + cnt * 20;
 
             * (int *) (res + offsets_arr[ind] + 12) = global_offset;
 
-            len += strlen (buf + ind + 1) - 1;
-
-            * (int *) (res + offsets_arr[ind] + 21) = len - 1;
+            * (int *) (res + offsets_arr[ind] + 21) = strlen (buf + ind + 1);
 
             cnt++;
-            len = 0;
         }
 
         ind++;
@@ -410,6 +421,17 @@ inline void Mul_Bx (unsigned char *res, int *counter)
 
 //-----------------------------------------------------------------------------
 
+inline void Idiv_Bx (unsigned char *res, int *counter)
+{
+    assert (res);
+
+    res[(*counter)++] = C_idiv_bx[0];                //}
+    res[(*counter)++] = C_idiv_bx[1];                //| idiv bx
+    res[(*counter)++] = C_idiv_bx[2];                //}
+}
+
+//-----------------------------------------------------------------------------
+
 inline void Div_Bx (unsigned char *res, int *counter)
 {
     assert (res);
@@ -492,3 +514,37 @@ inline void Syscall (unsigned char *res, int *counter)
     res[(*counter)++] = C_syscall[1];                //} syscall
 }
 
+
+/*
+55
+48 89 e5
+50
+57
+56
+52
+48 be 00
+20 40 00 00 00 00 00
+48 83 c6 13
+b1 0a
+ba 00 00 00 00
+f6 f1
+80 fc 09
+80  c4 30
+88 26
+48 ff ce
+48 ff c2
+30 e4
+66 83 f8 00
+77 e8
+b8 01 00 00 00
+bf 01 00 00 00
+48 ff c6
+0f 05
+5a
+5e
+5f
+58
+48 89 ec
+5d
+c3
+*/
