@@ -46,6 +46,12 @@ const unsigned char C_sub_si_di[3] = {0x66, 0x29, 0xfe};
 const unsigned char C_add_si_di[3] = {0x66, 0x01, 0xfe};
 const unsigned char C_cmp_si_di[3] = {0x66, 0x39, 0xfe};
 
+const unsigned char C_add_r8_not_reg[3] = {0x49, 0x83, 0xc0};
+const unsigned char C_sub_r8_not_reg[3] = {0x49, 0x83, 0xe8};
+
+//const unsigned char C_jmp_r8[3] = {0x41, 0xff, 0xe0};
+const unsigned char C_jmp_r8[3] = {0x41, 0xff, 0x20};
+
 const unsigned char C_jmp  = 0xe9;
 
 const unsigned char C_je   = 0x74;  //}

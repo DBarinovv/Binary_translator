@@ -22,7 +22,7 @@
 const elf::Elf64_Half	C_my_e_type      = 0x0002;
 const elf::Elf64_Half	C_my_e_machine   = 0x003E;
 const elf::Elf64_Word	C_my_e_version   = 0x00000001;
-const elf::Elf64_Addr	C_my_e_entry     = 0x0000000000400300;
+const elf::Elf64_Addr	C_my_e_entry     = 0x0000000000400078;
 const elf::Elf64_Off	C_my_e_phoff     = 0x0000000000000040;
 const elf::Elf64_Off	C_my_e_shoff     = 0x00000000;
 const elf::Elf64_Word	C_my_e_flags     = 0x00000000;
@@ -96,18 +96,24 @@ inline void Add_Si_Di  (unsigned char *res, int *counter);
 
 inline void Sub_Si_Di  (unsigned char *res, int *counter);
 
+inline void Jmp_r8     (unsigned char *res, int *counter);
+
+inline void Add_R8_Not_Reg  (unsigned char *res, int *counter);
+
+inline void Sub_R8_Not_Reg  (unsigned char *res, int *counter);
+
 inline void Move_Si_Not_Reg (unsigned char *res, int *counter);
 
 inline void Move_Rsi_Offset (unsigned char *res, int *counter);
 
-inline void Syscall    (unsigned char *res, int *counter);
+inline void Syscall         (unsigned char *res, int *counter);
 
 //=============================================================================
 
 int main ()
 {
-    char *name_of_fin  = "output.txt";
-    char *name_of_fout = "Elf_file_quadratic";
+    char *name_of_fin  = "output_factorial.txt";
+    char *name_of_fout = "Elf_file_factorial";
 
     int sz_file = Find_Size_Of_File (name_of_fin);
 
@@ -163,9 +169,9 @@ int main ()
     #undef REALLOC_RES
 
 
-    res[7]  = 1;  // a }
-    res[15] = 1;  // b | ax**2 + bx + c = 0 (for tests)
-    res[23] = -6; // c }
+//    res[7]  = 1;  // a }
+//    res[15] = 1;  // b | ax**2 + bx + c = 0 (for tests)
+//    res[23] = -6; // c }
 
     Make_Right_Jumps (buf, res, offsets_arr, sz_file);
 
@@ -244,12 +250,14 @@ void Make_Res_File (const elf::Elf64_Ehdr *elf_header, elf::Elf64_Phdr *program_
     fwrite (program_header, sizeof (elf::Elf64_Phdr), 1, fout);
 
 
-    unsigned char jump_to_start[0x100 - 0x78] = {C_jmp};
-    * (int *) (jump_to_start + 1) = 0x400300 - 0x400078 - 5;
+    unsigned char start_buf[0x100 - 0x78] = {
+                                            0x41, 0xb8, 0x98, 0x00, 0x40, 0x00,  // mov r8, 0x400098    for recursion
+                                            C_jmp};
+    * (int *) (start_buf + 7) = 0x400300 - 0x400078 - 11;
 
-    jump_to_start[0x80 - 0x78 + 0x13] = ' '; // for OUT
+    start_buf[0x80 - 0x78 + 0x13] = ' '; // for OUT
 
-    fwrite (jump_to_start, 0x100 - 0x78, 1, fout);
+    fwrite (start_buf, 0x100 - 0x78, 1, fout);
 
 
     unsigned char helper[0x100] = {
@@ -284,11 +292,21 @@ void Make_Right_Jumps (const char *buf, unsigned char *res, const int *offsets_a
 
             * (int *) (res + offsets_arr[ind] + 10) = dif;
         }
-        else if (buf[ind] == 17) // jmp
+        else if (buf[ind] == CMD_JMP) // jmp
         {
             int dif = offsets_arr[(* (int *) (buf + ind + 1))] - offsets_arr[ind] - 5; // 5 = len (jump)
 
             * (int *) (res + offsets_arr[ind] + 1) = dif;
+        }
+        else if (buf[ind] == CMD_SQRT)
+        {
+            * (int *) (res + offsets_arr[ind] + 9) = 0x171 - 0x300 - offsets_arr[ind] - 10;
+        }
+        else if (buf[ind] == CMD_CALL)
+        {
+            int dif = offsets_arr[(* (int *) (buf + ind + 1))] - offsets_arr[ind] - 16;
+
+            * (int *) (res + offsets_arr[ind] + 12) = dif;
         }
 
         ind++;
@@ -324,10 +342,6 @@ void Make_Right_Print (const char *buf, unsigned char *res, const int *offsets_a
             * (int *) (res + offsets_arr[ind] + 21) = strlen (buf + ind + 1);
 
             cnt++;
-        }
-        else if (buf[ind] == CMD_SQRT)
-        {
-            * (int *) (res + offsets_arr[ind] + 9) = 0x171 - 0x300 - offsets_arr[ind] - 10;
         }
 
         ind++;
@@ -501,7 +515,7 @@ inline void Move_Si_Not_Reg (unsigned char *res, int *counter)
     assert (res);
 
     res[(*counter)++] = C_mov_si_not_reg[0];         //}
-    res[(*counter)++] = C_mov_si_not_reg[1];         //} mov si, const
+    res[(*counter)++] = C_mov_si_not_reg[1];         //} mov si, CONST
 }
 
 //-----------------------------------------------------------------------------
@@ -534,6 +548,39 @@ inline void Sub_Si_Di (unsigned char *res, int *counter)
     res[(*counter)++] = C_sub_si_di[0];              //}
     res[(*counter)++] = C_sub_si_di[1];              //| sub si, di
     res[(*counter)++] = C_sub_si_di[2];              //}
+}
+
+//-----------------------------------------------------------------------------
+
+inline void Add_R8_Not_Reg (unsigned char *res, int *counter)
+{
+    assert (res);
+
+    res[(*counter)++] = C_add_r8_not_reg[0];         //}
+    res[(*counter)++] = C_add_r8_not_reg[1];         //| add r8, CONST
+    res[(*counter)++] = C_add_r8_not_reg[2];         //}
+}
+
+//-----------------------------------------------------------------------------
+
+inline void Sub_R8_Not_Reg (unsigned char *res, int *counter)
+{
+    assert (res);
+
+    res[(*counter)++] = C_sub_r8_not_reg[0];         //}
+    res[(*counter)++] = C_sub_r8_not_reg[1];         //| sub r8, CONST
+    res[(*counter)++] = C_sub_r8_not_reg[2];         //}
+}
+
+//-----------------------------------------------------------------------------
+
+inline void Jmp_r8 (unsigned char *res, int *counter)
+{
+    assert (res);
+
+    res[(*counter)++] = C_jmp_r8[0];                 //}
+    res[(*counter)++] = C_jmp_r8[1];                 //| jmp r8
+    res[(*counter)++] = C_jmp_r8[2];                 //}
 }
 
 //-----------------------------------------------------------------------------

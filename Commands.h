@@ -211,20 +211,46 @@ DEF_CMD(SQRT, 7,
 
 DEF_CMD(CALL, 8,
                 {
-//                counter++;
-//
-//                Stack_Push (stk_for_func, counter + sizeof (int));
-//
-//                int sum = * (int*) (buf + counter);
-//                counter = sum;
-////                counter = buf[counter];
-//
+                offsets_arr[pos] = counter;
+
+                REALLOC_RES
+                pos++;
+
+                int global_offset = 0x400300 + counter + 16;
+
+                res[counter++] = 0x49;                       // }
+                res[counter++] = 0xc7;                       // }
+                res[counter++] = 0x00;                       // | mov [r8], global_offset
+                * (int *) (res + counter) = global_offset;   // }
+
+                counter += sizeof (int);
+
+                Add_R8_Not_Reg (res, &counter);
+                res[counter++] = 0x08;
+
+                REALLOC_RES
+
+                res[counter++] = C_jmp;
+
+                for (int i = 0; i < 4; i++)   //}
+                    res[counter++] = 0;       //} TBA
+
+                pos += sizeof (int);
+
                 break;
                 }, 1)
 
 DEF_CMD(RET, 9,
                 {
-//                Stack_Pop (stk_for_func, &counter);
+                offsets_arr[pos] = counter;
+
+                REALLOC_RES
+                pos++;
+
+                Sub_R8_Not_Reg (res, &counter);
+                res[counter++] = 0x08;
+
+                Jmp_r8 (res, &counter);
 
                 break;
                 }, 0)
