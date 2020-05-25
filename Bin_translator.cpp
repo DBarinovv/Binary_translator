@@ -80,6 +80,8 @@ inline void Sub_Ax_Bx  (unsigned char *res, int *counter);
 
 inline void Mul_Bx     (unsigned char *res, int *counter);
 
+inline void Imul_Bx    (unsigned char *res, int *counter);
+
 inline void Idiv_Bl    (unsigned char *res, int *counter);
 
 inline void Imul_Bl    (unsigned char *res, int *counter);
@@ -112,8 +114,8 @@ inline void Syscall         (unsigned char *res, int *counter);
 
 int main ()
 {
-    char *name_of_fin  = "output_factorial.txt";
-    char *name_of_fout = "Elf_file_factorial";
+    char *name_of_fin  = "output.txt";
+    char *name_of_fout = "Elf_file_quadratic";
 
     int sz_file = Find_Size_Of_File (name_of_fin);
 
@@ -169,9 +171,11 @@ int main ()
     #undef REALLOC_RES
 
 
-//    res[7]  = 1;  // a }
-//    res[15] = 1;  // b | ax**2 + bx + c = 0 (for tests)
-//    res[23] = -6; // c }
+    res[7]  = 0;  // a }
+    res[15] = 0;  // b | ax**2 + bx + c = 0 (for quadratic tests)
+    res[23] = 5;  // c }
+
+//    res[2] = 7;   // n!  (for factorial test)
 
     Make_Right_Jumps (buf, res, offsets_arr, sz_file);
 
@@ -453,6 +457,17 @@ inline void Idiv_Bl (unsigned char *res, int *counter)
 
     res[(*counter)++] = C_idiv_bl[0];                //}
     res[(*counter)++] = C_idiv_bl[1];                //} idiv bl
+}
+
+//-----------------------------------------------------------------------------
+
+inline void Imul_Bx (unsigned char *res, int *counter)
+{
+    assert (res);
+
+    res[(*counter)++] = C_imul_bx[0];                //}
+    res[(*counter)++] = C_imul_bx[1];                //} imul bx
+    res[(*counter)++] = C_imul_bx[2];                //}
 }
 
 //-----------------------------------------------------------------------------
